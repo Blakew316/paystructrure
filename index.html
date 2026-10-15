@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Agent Pay Estimator</title>
+<meta name="description" content="Estimate your monthly pay, bonuses and residuals as a Wholesale Payments agent.">
+<meta name="robots" content="noindex">
+<link rel="icon" type="image/png" href="assets/mark.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Sora:wght@500;600;700&display=swap">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body data-period="ramp">
+
+<header class="topbar">
+  <div class="wrap topbar-inner">
+    <a class="brand" href="./" aria-label="Agent Pay Estimator home">
+      <img class="logo logo-light" src="assets/logo.png" alt="Wholesale Payments" width="540" height="142">
+      <img class="logo logo-dark" src="assets/logo-dark.png" alt="" width="540" height="142">
+    </a>
+    <div class="topbar-right">
+      <span class="team-chip" id="teamChip">Wholesale Payments</span>
+      <button class="btn-ghost" id="openSetup" type="button">Team setup</button>
+      <a class="btn btn-dl guide-link head-dl" href="assets/career-guide.pdf" download="Wholesale-Payments-Career-Guide.pdf">Career guide <span aria-hidden="true">↓</span></a>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section class="intro">
+    <p class="eyebrow" id="eyebrow">Agent pay estimator</p>
+    <h1>See what your month pays before it ends.</h1>
+    <p class="lede">Slide to your deal count. Commission, bonuses and residuals update as you go. Pick the period you're in first, because the first <span data-bind="rampMonths">3</span> months pay differently.</p>
+
+    <div class="period" role="radiogroup" aria-label="Pay period">
+      <button type="button" role="radio" class="period-opt" id="periodRamp" data-period="ramp" aria-checked="true">
+        <span class="period-name">Ramp-Up</span>
+        <span class="period-sub">Months 1–<span data-bind="rampMonths">3</span> · new reps</span>
+      </button>
+      <button type="button" role="radio" class="period-opt" id="periodStd" data-period="standard" aria-checked="false">
+        <span class="period-name">Standard</span>
+        <span class="period-sub">Month <span data-bind="rampMonthsPlus">4</span> onward</span>
+      </button>
+    </div>
+
+    <div class="compare" aria-label="What changes between periods">
+      <div class="compare-row compare-head">
+        <span></span><span class="c-ramp">Ramp-Up</span><span class="c-std">Standard</span>
+      </div>
+      <div class="compare-row"><span>Upfront commission</span><span class="c-ramp" id="cmpCommRamp">2× per deal</span><span class="c-std">1× per deal</span></div>
+      <div class="compare-row"><span id="cmpBonusLabel">Monthly bonus at 5 / 8 / 10 deals</span><span class="c-ramp" id="cmpBonusRamp">$1,000 / $1,500 / $2,000</span><span class="c-std" id="cmpBonusStd">$500 / $750 / $1,000</span></div>
+      <div class="compare-row"><span>30-day and 90-day signing bonuses</span><span class="c-ramp">Eligible</span><span class="c-std">Not available</span></div>
+      <div class="compare-row"><span>Residuals</span><span class="c-ramp">Build your book now</span><span class="c-std">Paid monthly from month <span data-bind="firstPayMonth">5</span></span></div>
+    </div>
+  </section>
+
+  <div class="calc">
+    <section class="panel controls" aria-labelledby="dealsLabel">
+      <div class="deals-head">
+        <label id="dealsLabel" for="deals">Approved deals this month</label>
+        <div class="deals-value"><output id="dealsOut" for="deals">8</output><span>deals</span></div>
+      </div>
+      <div class="slider-wrap">
+        <input type="range" id="deals" min="0" max="30" step="1" value="8" aria-describedby="nextTier">
+        <div class="ticks" id="ticks" aria-hidden="true"></div>
+      </div>
+      <p class="next-tier" id="nextTier" aria-live="polite"></p>
+
+      <div class="fields">
+        <div class="field field-wide">
+          <span class="field-label" id="pricingLabel">How your deals are priced</span>
+          <div class="seg" role="radiogroup" aria-labelledby="pricingLabel">
+            <button type="button" role="radio" class="seg-opt" data-pricing="traditional" aria-checked="true">Traditional <small id="tradRate">$300/deal</small></button>
+            <button type="button" role="radio" class="seg-opt" data-pricing="cash" aria-checked="false">Cash discount <small id="cashRate">$400/deal</small></button>
+          </div>
+        </div>
+        <div class="field">
+          <label for="smallDeals">Swiper, salon or home-based deals</label>
+          <input type="number" id="smallDeals" min="0" step="1" value="0" inputmode="numeric">
+          <span class="hint" id="smallHint">Paid $100 each unless the statement is over $10K.</span>
+        </div>
+        <div class="field">
+          <label for="leadDeals">Deals from company appointments</label>
+          <input type="number" id="leadDeals" min="0" step="1" value="0" inputmode="numeric">
+          <span class="hint" id="leadHint">$50 lead deduction each.</span>
+        </div>
+        <div class="field">
+          <label for="stmtDeals">Deals with a statement of $20K+</label>
+          <input type="number" id="stmtDeals" min="0" step="1" value="1" inputmode="numeric">
+          <span class="hint">Statement must be submitted with the app, within 90 days.</span>
+        </div>
+        <div class="field">
+          <label for="stmtVolume">Average statement volume</label>
+          <div class="input-pre"><span>$</span><input type="number" id="stmtVolume" min="0" step="1000" value="30000" inputmode="numeric"></div>
+          <span class="hint" id="stmtHint"></span>
+        </div>
+        <div class="field field-wide">
+          <label for="equipProfit">Equipment sold: sale price minus equipment cost</label>
+          <div class="input-pre"><span>$</span><input type="number" id="equipProfit" min="0" step="50" value="0" inputmode="numeric"></div>
+          <span class="hint" id="equipHint">You keep 70% once the merchant has paid in full.</span>
+        </div>
+      </div>
+    </section>
+
+    <aside class="panel result" aria-labelledby="totalLabel">
+      <p class="result-period" id="resultPeriod">Ramp-Up month</p>
+      <p class="result-label" id="totalLabel">Estimated upfront pay this month</p>
+      <p class="total" id="total" aria-live="polite">$0</p>
+      <dl class="breakdown" id="breakdown"></dl>
+      <div class="ladder" id="ladder" aria-label="Monthly bonus tiers"></div>
+      <p class="fine" id="payoutNote"></p>
+    </aside>
+  </div>
+
+  <section class="section ramp-only" aria-labelledby="ninetyTitle">
+    <div class="section-head">
+      <p class="eyebrow">Ramp-Up only</p>
+      <h2 id="ninetyTitle">Your first 90 days</h2>
+      <p class="section-lede">Signing bonuses for new reps. These sit on top of your monthly pay.</p>
+    </div>
+    <div class="ninety">
+      <div class="panel ninety-controls">
+        <div class="mini-slider">
+          <div class="mini-head"><label for="deals30">Deals in your first 30 days</label><output id="deals30Out" for="deals30">5</output></div>
+          <input type="range" id="deals30" min="0" max="30" step="1" value="5">
+        </div>
+        <div class="mini-slider">
+          <div class="mini-head"><label for="deals90">Deals in your first 90 days</label><output id="deals90Out" for="deals90">25</output></div>
+          <input type="range" id="deals90" min="0" max="100" step="1" value="25">
+        </div>
+        <label class="check" for="all5k">
+          <input type="checkbox" id="all5k">
+          <span>All <span data-bind="signingDeals">25</span> merchants process <span data-bind="option2Min">$5,000</span>+ when the report runs</span>
+        </label>
+        <p class="ninety-total-label">90-day bonus estimate</p>
+        <p class="ninety-total" id="ninetyTotal">$0</p>
+        <p class="fine" id="ninetyRule"></p>
+      </div>
+      <div class="bonus-cards" id="bonusCards"></div>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="resTitle">
+    <div class="section-head">
+      <p class="eyebrow">Residuals</p>
+      <h2 id="resTitle">The income that keeps paying</h2>
+      <p class="section-lede">You earn <span data-bind="residualShare">50%</span> of the residual on every merchant you sign, every month they process. This projects your book at your current deal pace. The volume and margin are example figures, so change them to match your merchants.</p>
+    </div>
+    <div class="residual">
+      <div class="panel res-controls">
+        <div class="field">
+          <label for="resPace">Deals per month (pace)</label>
+          <input type="number" id="resPace" min="0" step="1" value="8" inputmode="numeric">
+          <span class="hint">Follows the slider above until you change it.</span>
+        </div>
+        <div class="field">
+          <label for="resVolume">Avg monthly volume per merchant</label>
+          <div class="input-pre"><span>$</span><input type="number" id="resVolume" min="0" step="1000" value="15000" inputmode="numeric"></div>
+        </div>
+        <div class="field">
+          <label for="resBps">Avg net margin, basis points</label>
+          <input type="number" id="resBps" min="0" step="5" value="50" inputmode="numeric">
+          <span class="hint">50 bps = 0.50% of volume, before your split.</span>
+        </div>
+        <div class="field">
+          <label for="resAttrition">Merchants lost per month</label>
+          <div class="input-post"><input type="number" id="resAttrition" min="0" max="100" step="0.5" value="2" inputmode="decimal"><span>%</span></div>
+        </div>
+        <p class="per-merchant">≈ <strong id="perMerchant">$37.50</strong> per merchant per month to you</p>
+      </div>
+      <div class="panel res-chart">
+        <div class="stats" id="resStats"></div>
+        <div class="chart" id="chart" role="img" aria-label="Projected monthly residual over 24 months"></div>
+        <p class="warn" id="resWarn" hidden></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="rulesTitle">
+    <div class="section-head">
+      <p class="eyebrow">Fine print</p>
+      <h2 id="rulesTitle">How and when you get paid</h2>
+    </div>
+    <div class="rules" id="rules"></div>
+  </section>
+
+  <section class="section" aria-labelledby="guideTitle">
+    <div class="guide-card">
+      <div class="guide-copy">
+        <p class="eyebrow">Take it with you</p>
+        <h2 id="guideTitle">The career guide</h2>
+        <p class="section-lede">Nine pages on how the opportunity works: earnings, your first three months, the 25-deal milestone, and who to talk to. Keep it on your phone or send it to someone you're recruiting.</p>
+        <a class="btn btn-dl guide-link" href="assets/career-guide.pdf" download="Wholesale-Payments-Career-Guide.pdf">Download the PDF <span aria-hidden="true">↓</span></a>
+      </div>
+      <div class="guide-pages" aria-hidden="true">
+        <span class="gp gp-1"><b>Build something that keeps paying.</b></span>
+        <span class="gp gp-2"><i></i><i></i><i></i></span>
+        <span class="gp gp-3"><em>$15,000</em><i></i><i></i></span>
+      </div>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <blockquote class="note" id="managerNote" hidden>
+      <p id="managerNoteText"></p>
+      <cite id="managerNoteBy"></cite>
+    </blockquote>
+    <p class="disclaimer">Estimates only. Actual pay follows your Agent Agreement and your weekly Pre-Pay Verification email. Upfront amounts start at the base rate and are adjusted for volume and SSOC pricing.</p>
+  </footer>
+</main>
+
+<dialog class="setup" id="setup" aria-labelledby="setupTitle">
+  <form method="dialog" class="setup-form" id="setupForm">
+    <div class="setup-head">
+      <div>
+        <p class="eyebrow">For managers</p>
+        <h2 id="setupTitle">Team setup</h2>
+        <p class="section-lede">Adjust the plan for your team, then copy the link and send it to your agents. Changes only live in the link, so the company page stays the same.</p>
+      </div>
+      <button class="btn-ghost" value="cancel" type="submit" aria-label="Close team setup">Close</button>
+    </div>
+    <div class="setup-body" id="setupBody"></div>
+    <div class="setup-foot">
+      <label class="link-label" for="shareLink">Team link</label>
+      <div class="link-row">
+        <input type="text" id="shareLink" readonly>
+        <button class="btn" type="button" id="copyLink">Copy link</button>
+      </div>
+      <p class="fine" id="copyStatus" aria-live="polite"></p>
+      <div class="setup-actions">
+        <button class="btn-ghost" type="button" id="resetSetup">Reset to company plan</button>
+        <button class="btn" type="button" id="applySetup">Preview on this page</button>
+      </div>
+    </div>
+  </form>
+</dialog>
+
+<script src="js/config.js"></script>
+<script src="js/calc.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

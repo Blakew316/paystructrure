@@ -1,0 +1,13 @@
+{
+  "name": "agent-pay-estimator",
+  "private": true,
+  "description": "Static pay estimator for Wholesale Payments agents.",
+  "scripts": {
+    "test": "node --test tests/calc.test.js",
+    "start": "python3 -m http.server 8080",
+    "build:guide": "node scripts/build-guide.js"
+  },
+  "devDependencies": {
+    "playwright": "1.56.1"
+  }
+}
