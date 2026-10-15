@@ -197,6 +197,15 @@
     return out;
   }
 
+  /**
+   * Apply team overrides from a link or team file. Only the `team` block
+   * (name, note, contact details) is honored; pay always comes from the
+   * company defaults, so a hand-edited link can't change anyone's numbers.
+   */
+  function mergeTeam(defaults, over) {
+    return mergeConfig(defaults, { team: isObj(over) ? over.team : undefined });
+  }
+
   /** Only the leaves of `cfg` that differ from `defaults` (arrays compared whole). */
   function diffConfig(defaults, cfg) {
     var out = {}, any = false;
@@ -222,6 +231,7 @@
     residualPerMerchant: residualPerMerchant,
     projectResiduals: projectResiduals,
     mergeConfig: mergeConfig,
+    mergeTeam: mergeTeam,
     diffConfig: diffConfig
   };
   root.PayCalc = api;

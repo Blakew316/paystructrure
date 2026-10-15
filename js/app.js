@@ -142,7 +142,7 @@
       if (v != null) n.textContent = v;
     });
 
-    document.title = cfg.team.name === D.team.name ? 'Agent Pay Estimator' : cfg.team.name + ' Pay Estimator';
+    document.title = cfg.team.name === D.team.name ? 'WPI Careers' : cfg.team.name + ' · WPI Careers';
 
     $('tradRate').textContent = money(cfg.upfront.traditional) + '/deal';
     $('cashRate').textContent = money(cfg.upfront.cash) + '/deal';
@@ -815,42 +815,13 @@
       { k: 'team.name', label: 'Team name', type: 'text' },
       { k: 'team.manager', label: 'Note signed by (optional)', type: 'text' },
       { k: 'team.title', label: 'Title under the note', type: 'text' },
-      { k: 'team.note', label: 'Note to your agents (shown at the bottom)', type: 'textarea', wide: true },
-      { k: 'team.guide', label: 'Team career guide (optional)', type: 'text', wide: true, hint: 'Leave blank for the company guide. Enter a slug like "lubbock" once assets/career-guide-lubbock.pdf is published.' }
+      { k: 'team.note', label: 'Note to your agents', type: 'textarea', wide: true }
     ]],
     ['Your contact info', [
       { k: 'team.contactName', label: 'Your name', type: 'text' },
       { k: 'team.contactTitle', label: 'Your title', type: 'text' },
       { k: 'team.contactPhone', label: 'Phone (for Call and Text)', type: 'text', inputmode: 'tel' },
       { k: 'team.contactEmail', label: 'Email', type: 'text', inputmode: 'email' }
-    ]],
-    ['Upfront commission', [
-      { k: 'upfront.cash', label: 'Cash discount, per deal', pre: '$' },
-      { k: 'upfront.traditional', label: 'Traditional, per deal', pre: '$' },
-      { k: 'closeRate', label: 'Appointment close rate', post: '%' },
-      { k: 'equipmentShare', label: 'Equipment sale share', post: '%' }
-    ]],
-    ['Ramp-up', [
-      { k: 'rampMonths', label: 'Ramp-up length (months)' },
-      { k: 'rampCommissionMultiplier', label: 'Commission multiplier during ramp-up', post: '×' }
-    ]],
-    ['Monthly bonus tiers', [
-      { k: 'monthlyTiers', label: 'Standard (deals = bonus)', type: 'tiers', wide: true },
-      { k: 'rampTiers', label: 'Ramp-up (deals = bonus)', type: 'tiers', wide: true }
-    ]],
-    ['First 90 days', [
-      { k: 'fastStart30.deals', label: '30-day Fast Start: deals' },
-      { k: 'fastStart30.bonus', label: '30-day Fast Start: bonus', pre: '$' },
-      { k: 'signing.deals', label: 'Signing bonus: deals in 90 days' },
-      { k: 'signing.bonus', label: 'Signing bonus', pre: '$' },
-      { k: 'signing.minVolume', label: 'Signing bonus: volume per merchant', pre: '$' }
-    ]],
-    ['Residuals', [
-      { k: 'residual.share', label: 'Residual share', post: '%' },
-      { k: 'residual.firstPayMonth', label: 'First residual month' },
-      { k: 'residual.volume', label: 'Default volume per merchant', pre: '$' },
-      { k: 'residual.bps', label: 'Net margin used for estimates (bps)' },
-      { k: 'residual.attrition', label: 'Merchants lost per month', post: '%' }
     ]]
   ];
 
@@ -921,7 +892,7 @@
 
   var linkTimer = 0;
   function onDraftChange() {
-    cfg = C.mergeConfig(D, draft);
+    cfg = C.mergeTeam(D, draft);
     renderAll();
     clearTimeout(linkTimer);
     linkTimer = setTimeout(updateLink, 120);
@@ -1018,8 +989,8 @@
   // Team file (?team=slug) first, then any ?t= link overrides on top.
   Promise.all([readSlugPlan(), readLinkPlan().catch(function () { return null; })]).then(function (res) {
     if (!res[0] && !res[1]) return;
-    cfg = C.mergeConfig(D, res[0] || {});
-    if (res[1]) cfg = C.mergeConfig(cfg, res[1]);
+    cfg = C.mergeTeam(D, res[0] || {});
+    if (res[1]) cfg = C.mergeTeam(D, { team: Object.assign({}, cfg.team, res[1].team || {}) });
     renderAll();
   });
 })();

@@ -115,3 +115,20 @@ test('diffConfig round-trips through mergeConfig', () => {
   assert.deepEqual(C.mergeConfig(D, diff), edited);
   assert.equal(C.diffConfig(D, C.mergeConfig(D, {})), null);
 });
+
+test('team links can change team and contact info but never pay', () => {
+  const c = C.mergeTeam(D, {
+    team: { name: 'Team Lubbock', contactPhone: '214-555-0142' },
+    upfront: { cash: 9999 },
+    monthlyTiers: [[1, 100000]],
+    signing: { bonus: 1 },
+    residual: { share: 100 }
+  });
+  assert.equal(c.team.name, 'Team Lubbock');
+  assert.equal(c.team.contactPhone, '214-555-0142');
+  assert.equal(c.upfront.cash, D.upfront.cash);
+  assert.deepEqual(c.monthlyTiers, D.monthlyTiers);
+  assert.equal(c.signing.bonus, D.signing.bonus);
+  assert.equal(c.residual.share, D.residual.share);
+  assert.deepEqual(C.mergeTeam(D, null), C.mergeConfig(D, {}));
+});

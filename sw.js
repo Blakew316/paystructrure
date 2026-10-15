@@ -1,5 +1,5 @@
 /**
- * Service worker for the WPI Agent Pay home-screen app.
+ * Service worker for the WPI Careers home-screen app.
  *
  * Pages and team files are network-first so agents always get the current
  * plan when online, with the cached copy as an offline fallback. Static
@@ -7,7 +7,7 @@
  */
 'use strict';
 
-const VERSION = 'wpi-pay-v14';
+const VERSION = 'wpi-pay-v16';
 const SHELL = [
   './',
   'index.html',
