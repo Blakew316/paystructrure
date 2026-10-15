@@ -23,9 +23,7 @@
       contactName: '',
       contactTitle: 'Sales Director',
       contactPhone: '',
-      contactEmail: '',
-      // Optional: a team slug whose assets/career-guide-<slug>.pdf replaces the company guide.
-      guide: ''
+      contactEmail: ''
     },
 
     // Ramp-up = the first N months on the team (double commission + double bonus).

@@ -198,7 +198,7 @@
   }
 
   /**
-   * Apply team overrides from a link or team file. Only the `team` block
+   * Apply team overrides. Only the `team` block
    * (name, note, contact details) is honored; pay always comes from the
    * company defaults, so a hand-edited link can't change anyone's numbers.
    */
@@ -206,19 +206,26 @@
     return mergeConfig(defaults, { team: isObj(over) ? over.team : undefined });
   }
 
-  /** Only the leaves of `cfg` that differ from `defaults` (arrays compared whole). */
-  function diffConfig(defaults, cfg) {
-    var out = {}, any = false;
-    Object.keys(defaults).forEach(function (k) {
-      var d = defaults[k], v = cfg[k];
-      if (isObj(d)) {
-        var sub = diffConfig(d, v || {});
-        if (sub) { out[k] = sub; any = true; }
-      } else if (JSON.stringify(d) !== JSON.stringify(v)) {
-        out[k] = v; any = true;
-      }
-    });
-    return any ? out : null;
+  /**
+   * Team block for a team listed in `teams` (js/teams.js). Team and director
+   * names always come from the list. `o` (from a link or Team setup) may fill
+   * in title, note, phone and email, but phone/email already in the list win,
+   * so a link can't swap in someone else's number once it's official.
+   */
+  function teamBlock(teams, defaults, slug, o) {
+    var t = teams[slug];
+    o = isObj(o) ? o : {};
+    var str = function (k) { return typeof o[k] === 'string' ? o[k].trim() : ''; };
+    return {
+      name: t.name,
+      manager: t.director,
+      title: '',
+      note: str('note') || defaults.team.note,
+      contactName: t.director,
+      contactTitle: str('contactTitle') || defaults.team.contactTitle,
+      contactPhone: t.phone || str('contactPhone'),
+      contactEmail: t.email || str('contactEmail')
+    };
   }
 
   var api = {
@@ -232,7 +239,7 @@
     projectResiduals: projectResiduals,
     mergeConfig: mergeConfig,
     mergeTeam: mergeTeam,
-    diffConfig: diffConfig
+    teamBlock: teamBlock
   };
   root.PayCalc = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;

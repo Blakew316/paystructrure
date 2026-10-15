@@ -1,11 +1,9 @@
 /**
- * Render guide/career-guide.html to a PDF with the recruiter's contact details.
+ * Render guide/career-guide.html to assets/career-guide.pdf.
  *
- *   node scripts/build-guide.js                    -> assets/career-guide.pdf (default contact)
- *   node scripts/build-guide.js teams/lubbock.json -> assets/career-guide-lubbock.pdf
+ *   node scripts/build-guide.js
  *
- * The team file's optional "guide" block supplies { name, phone, email }. Without
- * one, the guide names no contact and points readers to their sales director.
+ * The guide names no contact and points readers to their sales director.
  * Needs the `playwright` dev dependency; set CHROMIUM_PATH to use a local browser.
  */
 'use strict';
@@ -21,14 +19,8 @@ function esc(s) {
 }
 
 async function main() {
-  const teamFile = process.argv[2];
-  let contact = DEFAULT_CONTACT;
-  let out = path.join(ROOT, 'assets', 'career-guide.pdf');
-  if (teamFile) {
-    const team = JSON.parse(fs.readFileSync(teamFile, 'utf8'));
-    contact = Object.assign({}, DEFAULT_CONTACT, team.guide || {});
-    out = path.join(ROOT, 'assets', 'career-guide-' + path.basename(teamFile, '.json') + '.pdf');
-  }
+  const contact = DEFAULT_CONTACT;
+  const out = path.join(ROOT, 'assets', 'career-guide.pdf');
   const name = contact.name.trim();
   const first = name.split(/\s+/)[0];
   const digits = contact.phone.replace(/[^\d+]/g, '');

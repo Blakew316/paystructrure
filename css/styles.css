@@ -170,13 +170,18 @@ input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.12); }
 .field { display: grid; gap: 6px; align-content: start; min-width: 0; }
 .field-wide { grid-column: 1 / -1; }
 .field label, .field-label { font-size: 0.86rem; font-weight: 500; color: var(--ink-2); }
-input[type="number"], input[type="text"], textarea {
+input[type="number"], input[type="text"], input[type="tel"], input[type="email"], select, textarea {
   width: 100%; font: 500 1rem/1.3 var(--font-body); color: var(--ink); letter-spacing: -0.01em;
   background: var(--bg); border: 1px solid transparent; border-radius: var(--r-sm); padding: 11px 14px;
   font-variant-numeric: tabular-nums;
 }
 textarea { resize: vertical; min-height: 64px; font-weight: 400; }
-input[type="number"]:focus, input[type="text"]:focus, textarea:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 4px rgba(10, 132, 224, 0.16); background: #fff; }
+select { appearance: none; -webkit-appearance: none; cursor: pointer; padding-right: 36px;
+  background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%), linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+  background-position: calc(100% - 18px) 50%, calc(100% - 13px) 50%; background-size: 5px 5px; background-repeat: no-repeat; }
+input[readonly] { color: var(--ink-2); background: var(--surface-2); cursor: default; }
+input[readonly]:focus { box-shadow: none; border-color: transparent; }
+input[type="number"]:focus, input[type="text"]:focus, input[type="tel"]:focus, input[type="email"]:focus, select:focus, textarea:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 4px rgba(10, 132, 224, 0.16); background-color: #fff; }
 .input-pre { position: relative; display: flex; align-items: center; }
 .input-pre span { position: absolute; color: var(--muted); font-weight: 600; pointer-events: none; }
 .input-pre span { left: 14px; }

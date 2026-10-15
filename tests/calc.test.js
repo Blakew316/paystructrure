@@ -108,14 +108,6 @@ test('mergeConfig rejects junk and keeps types', () => {
   assert.equal(c.evil, undefined);
 });
 
-test('diffConfig round-trips through mergeConfig', () => {
-  const edited = C.mergeConfig(D, { team: { name: 'Team Lubbock' }, upfront: { cash: 450 } });
-  const diff = C.diffConfig(D, edited);
-  assert.deepEqual(diff, { team: { name: 'Team Lubbock' }, upfront: { cash: 450 } });
-  assert.deepEqual(C.mergeConfig(D, diff), edited);
-  assert.equal(C.diffConfig(D, C.mergeConfig(D, {})), null);
-});
-
 test('team links can change team and contact info but never pay', () => {
   const c = C.mergeTeam(D, {
     team: { name: 'Team Lubbock', contactPhone: '214-555-0142' },
@@ -131,4 +123,35 @@ test('team links can change team and contact info but never pay', () => {
   assert.equal(c.signing.bonus, D.signing.bonus);
   assert.equal(c.residual.share, D.residual.share);
   assert.deepEqual(C.mergeTeam(D, null), C.mergeConfig(D, {}));
+});
+
+const TEAMS = require('../js/teams.js');
+
+test('team block: names come from the team list, links fill in contact details', () => {
+  const b = C.teamBlock(TEAMS, D, 'maverick', { contactName: 'Someone Else', contactPhone: '214-555-0142', note: '  Go get it  ' });
+  assert.equal(b.name, 'Team Maverick');
+  assert.equal(b.contactName, 'Blake Woodruff');
+  assert.equal(b.contactPhone, '214-555-0142');
+  assert.equal(b.note, 'Go get it');
+  assert.equal(b.contactTitle, D.team.contactTitle);
+});
+
+test('team block: official phone and email cannot be overridden by a link', () => {
+  const teams = { x: { name: 'Team X', director: 'Pat Doe', phone: '806-555-0100', email: 'pat@wholesalepayments.com' } };
+  const b = C.teamBlock(teams, D, 'x', { contactPhone: '999-999-9999', contactEmail: 'evil@example.com' });
+  assert.equal(b.contactPhone, '806-555-0100');
+  assert.equal(b.contactEmail, 'pat@wholesalepayments.com');
+});
+
+test('every team has a short link page that forwards to it', () => {
+  const fs = require('fs');
+  const path = require('path');
+  const dir = path.join(__dirname, '..', 'team');
+  const built = fs.readdirSync(dir).sort();
+  assert.deepEqual(built, Object.keys(TEAMS).sort(), 'run node scripts/build-team-pages.js');
+  for (const slug of built) {
+    const html = fs.readFileSync(path.join(dir, slug, 'index.html'), 'utf8');
+    assert.ok(html.includes("'../../?team=" + slug + "'"), slug + ' page forwards to its team');
+    assert.ok(html.includes(TEAMS[slug].name), slug + ' page names its team');
+  }
 });

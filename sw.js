@@ -7,12 +7,13 @@
  */
 'use strict';
 
-const VERSION = 'wpi-careers-v1';
+const VERSION = 'wpi-careers-v2';
 const SHELL = [
   './',
   'index.html',
   'css/styles.css',
   'js/config.js',
+  'js/teams.js',
   'js/calc.js',
   'js/app.js',
   'assets/logo.png',
@@ -43,7 +44,7 @@ self.addEventListener('fetch', event => {
   const url = new URL(req.url);
   if (url.origin !== location.origin) return; // fonts etc. go straight to the network
 
-  const networkFirst = req.mode === 'navigate' || url.pathname.includes('/teams/');
+  const networkFirst = req.mode === 'navigate';
   if (networkFirst) {
     event.respondWith(
       fetch(req)

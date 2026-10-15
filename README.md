@@ -39,24 +39,37 @@ The period toggle at the top switches between the two plans:
 | Monthly bonus | Doubled up to 10 deals, paid in two halves; standard tier above that when it pays more | Agreement tiers |
 | 30-day Fast Start ($1,000) and 25-deal signing bonus ($15,000) | Shown, and they stack | Hidden |
 
-## Team links (for sales directors)
+## Team pages
 
-1. Open the site and click **Team setup**.
-2. Fill in **Your contact info** (name, title, phone, email) so the Let's talk tab's
-   Call, Text and Email buttons reach you. Optionally set a team name and a note.
-3. Click **Copy link** (or **Open team page**) and send that link to your agents.
+Every team in `js/teams.js` has its own page:
 
-The company page and each team page are separate addresses. A team link looks like
-`https://<site>/?n=jordan-reyes&t=…`: `n` is a readable label and `t` carries the
-team details. Editing in Team setup previews the change but never alters the page
-you're on; closing the panel puts it back.
+| Team | Sales director | Link |
+|---|---|---|
+| Team Maverick | Blake Woodruff | `/team/maverick/` |
+| Team Mercury | Michael Reed | `/team/mercury/` |
+| Team Iceberg | Cody Malone | `/team/iceberg/` |
+| Team Mahogany | Walker Hall | `/team/mahogany/` |
+| Team Indigo | Erik Demster | `/team/indigo/` |
+| Team Chrome | Donovan Staggs | `/team/chrome/` |
+| Team Tango | Luke James | `/team/tango/` |
 
-Pay can't be changed per team. Team links and `teams/<slug>.json` files only carry
-the team block (name, note, contact); every pay number comes from `js/config.js`,
-so a hand-edited link can't alter commission, bonuses or residuals.
+A team page shows the team name, the director, and "Meet / Call / Text / Email" for
+that director. The company page (the site's root) stays separate.
 
-For a short, permanent link, commit `teams/<slug>.json` (see `teams/example.json`)
-and share `https://<site>/?team=<slug>`.
+**Adding contact details (directors):** open **Team setup**, select your team, then
+fill in your title, phone, email and an optional note. They save on that device
+and are built into **Your team's link** (`/team/<slug>/?t=…`). Copy that link and
+send it to your agents.
+
+**Making contact details official:** put a director's phone and email in
+`js/teams.js`. Official details always win: a link can't replace them, and the
+plain `/team/<slug>/` link then shows them with no extra parameters.
+
+**Adding or renaming a team:** edit `js/teams.js`, then run
+`node scripts/build-team-pages.js` to regenerate `team/` (the tests check they match).
+
+Pay can't be changed per team: team pages and links only affect contact details and
+the note. Every pay number comes from `js/config.js`.
 
 ## Career guide PDF
 
@@ -65,17 +78,10 @@ and share `https://<site>/?team=<slug>`.
 ```sh
 npm install
 npm run build:guide                         # assets/career-guide.pdf
-node scripts/build-guide.js teams/foo.json  # assets/career-guide-foo.pdf, using its "guide" contact
 ```
 
-Without a team file the guide names no contact. Photos for the Opportunity tab live in
-`assets/photos/`.
-
-```sh
-```
-
-To point a team's download button at its own guide, set **Team career guide** to
-`foo` in Team setup (or `team.guide` in the team file).
+The guide names no contact; it points readers to their sales director. Photos for
+the Opportunity tab live in `assets/photos/`.
 
 ## Where the numbers come from
 
@@ -94,6 +100,6 @@ update on their next launch.
 
 `.github/workflows/pages.yml` runs the tests and deploys to GitHub Pages on every
 push to `main`. Only the runtime files (`index.html`, `manifest.webmanifest`,
-`sw.js`, `css/`, `js/`, `assets/`, `teams/`) are published. Turn it on in **Settings → Pages → Source: GitHub Actions**.
+`sw.js`, `css/`, `js/`, `assets/`, `team/`) are published. Turn it on in **Settings → Pages → Source: GitHub Actions**.
 GitHub Pages sites are public even when the repo is private, so anyone with the
 URL can see the plan.

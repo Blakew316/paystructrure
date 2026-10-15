@@ -22,6 +22,7 @@
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"></noscript>
 <link rel="stylesheet" href="css/styles.css">
 <script src="js/config.js" defer></script>
+<script src="js/teams.js" defer></script>
 <script src="js/calc.js" defer></script>
 <script src="js/app.js" defer></script>
 </head>
@@ -68,7 +69,7 @@
   <section class="view" id="view-opportunity" role="tabpanel" aria-labelledby="tab-opportunity">
     <div class="hero">
       <div class="hero-copy">
-        <p class="eyebrow">Outside B2B sales · Wholesale Payments</p>
+        <p class="eyebrow" id="heroEyebrow">Outside B2B sales · Wholesale Payments</p>
         <h1 class="display">Your effort. Your future. <em>More possibility.</em></h1>
         <p class="hero-lede">Help business owners solve real problems, create income today, and build residual income for tomorrow.</p>
         <div class="hero-actions">
@@ -430,7 +431,39 @@
       </div>
       <button class="btn-ghost" value="cancel" type="submit" aria-label="Close team setup">Close</button>
     </div>
-    <div class="setup-body" id="setupBody"></div>
+    <div class="setup-body">
+      <fieldset class="setup-group">
+        <h3>Your team</h3>
+        <div class="field field-wide">
+          <label for="setupTeam">Select your team</label>
+          <select id="setupTeam"><option value="">Choose your team…</option></select>
+        </div>
+      </fieldset>
+      <fieldset class="setup-group" id="contactGroup" hidden>
+        <h3>Your contact info</h3>
+        <div class="field">
+          <label for="setupName">Sales director</label>
+          <input type="text" id="setupName" readonly tabindex="-1">
+        </div>
+        <div class="field">
+          <label for="setupRole">Your title</label>
+          <input type="text" id="setupRole" maxlength="60" autocomplete="organization-title">
+        </div>
+        <div class="field">
+          <label for="setupPhone">Phone (for Call and Text)</label>
+          <input type="tel" id="setupPhone" maxlength="30" autocomplete="tel">
+        </div>
+        <div class="field">
+          <label for="setupEmail">Email</label>
+          <input type="email" id="setupEmail" maxlength="80" autocomplete="email">
+        </div>
+        <div class="field field-wide">
+          <label for="setupNote">Note to your agents (optional)</label>
+          <textarea id="setupNote" maxlength="280"></textarea>
+        </div>
+      </fieldset>
+      <p class="fine" id="saveStatus" aria-live="polite"></p>
+    </div>
     <div class="setup-foot">
       <label class="link-label" for="shareLink">Your team's link</label>
       <div class="link-row">
@@ -440,7 +473,7 @@
       </div>
       <p class="fine" id="copyStatus" aria-live="polite"></p>
       <div class="setup-actions">
-        <button class="btn-ghost" type="button" id="resetSetup">Clear team info</button>
+        <button class="btn-ghost" type="button" id="resetSetup">Clear my details</button>
         <button class="btn" type="button" id="applySetup">Done</button>
       </div>
     </div>

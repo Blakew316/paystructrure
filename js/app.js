@@ -1,18 +1,19 @@
 /**
  * WPI Careers UI.
  *
- * Reads the company plan plus any team overrides from the link, wires the
- * sliders and inputs to PayCalc, and renders results. A team page is either
- * `?t=<encoded>` (made by the Team setup panel) or `?team=<slug>`, which loads
- * teams/<slug>.json; both may only change the team block (name, note,
- * contact), never pay. All config-derived text is set with textContent,
- * never innerHTML, because links are untrusted input.
+ * Reads the company plan, wires the sliders and inputs to PayCalc, and renders
+ * results. A team page is `?team=<slug>` (reached from /team/<slug>/) for a
+ * team listed in js/teams.js, optionally with `t=<encoded>` carrying the
+ * director's contact details from Team setup. Links can only change contact
+ * details and the note, never pay or the team/director names. Config-derived
+ * text is set with textContent, never innerHTML, because links are untrusted.
  */
 (function () {
   'use strict';
 
   var D = window.PAY_DEFAULTS;
   var C = window.PayCalc;
+  var TEAMS = window.WPI_TEAMS || {};
   var STORE_KEY = 'wp-pay-estimator:v1';
 
   var cfg = C.mergeConfig(D, {});
@@ -101,17 +102,19 @@
   }
   function baseUrl() { return location.origin + location.pathname; }
 
-  /** Team overrides carried in a `?t=` link. */
+  // ---------- team pages ----------
+  var LINK_KEYS = ['contactTitle', 'contactPhone', 'contactEmail', 'note'];
+
+  function teamSlug() {
+    var slug = new URLSearchParams(location.search).get('team');
+    return slug && Object.prototype.hasOwnProperty.call(TEAMS, slug) ? slug : '';
+  }
+
+  function teamBlock(slug, o) { return C.teamBlock(TEAMS, D, slug, o); }
+
   function readLinkPlan() {
     var q = new URLSearchParams(location.search).get('t');
-    return q && /^[A-Za-z0-9_-]+$/.test(q) ? decodePlan(q) : Promise.resolve(null);
-  }
-  function readSlugPlan() {
-    var slug = new URLSearchParams(location.search).get('team');
-    if (!slug || !/^[a-z0-9-]{1,40}$/.test(slug)) return Promise.resolve(null);
-    return fetch('teams/' + slug + '.json', { cache: 'no-cache' })
-      .then(function (r) { return r.ok ? r.json() : null; })
-      .catch(function () { return null; });
+    return q && /^[A-Za-z0-9_-]+$/.test(q) ? decodePlan(q).catch(function () { return null; }) : Promise.resolve(null);
   }
 
   // ---------- rendering ----------
@@ -137,17 +140,15 @@
     $('tradRate').textContent = money(cfg.upfront.traditional) + '/deal';
     $('cashRate').textContent = money(cfg.upfront.cash) + '/deal';
 
-    var slug = /^[a-z0-9-]{1,40}$/.test(cfg.team.guide) ? cfg.team.guide : '';
-    document.querySelectorAll('.guide-link').forEach(function (link) {
-      link.href = slug ? 'assets/career-guide-' + slug + '.pdf' : 'assets/career-guide.pdf';
-    });
-
     var note = cfg.team.note.trim();
     $('managerNote').hidden = !note;
     $('managerNoteText').textContent = note;
     var by = (cfg.team.name + ' ' + cfg.team.title).trim();
     $('managerNoteBy').textContent = '— ' + (cfg.team.manager ? cfg.team.manager + ', ' + by : by);
 
+    $('heroEyebrow').textContent = cfg.team.name === D.team.name
+      ? 'Outside B2B sales · Wholesale Payments'
+      : cfg.team.name + ' · Wholesale Payments';
     renderContact();
     renderFaq();
     $('standardsText').textContent = 'Submit daily merchant feedback by 8 PM and keep a ' + cfg.closeRate +
@@ -794,103 +795,117 @@
   }
 
   // ---------- team setup ----------
-  var FIELDS = [
-    ['Team', [
-      { k: 'team.name', label: 'Team name' },
-      { k: 'team.manager', label: 'Note signed by (optional)' },
-      { k: 'team.title', label: 'Title under the note' },
-      { k: 'team.note', label: 'Note to your agents', type: 'textarea', wide: true }
-    ]],
-    ['Your contact info', [
-      { k: 'team.contactName', label: 'Your name', autocomplete: 'name' },
-      { k: 'team.contactTitle', label: 'Your title', autocomplete: 'organization-title' },
-      { k: 'team.contactPhone', label: 'Phone (for Call and Text)', inputmode: 'tel', autocomplete: 'tel' },
-      { k: 'team.contactEmail', label: 'Email', inputmode: 'email', autocomplete: 'email' }
-    ]]
-  ];
-
-  function getPath(o, path) { return path.split('.').reduce(function (a, k) { return a == null ? a : a[k]; }, o); }
-  function setPath(o, path, v) {
-    var ks = path.split('.'), last = ks.pop();
-    var t = ks.reduce(function (a, k) { return a[k]; }, o);
-    t[last] = v;
-  }
-  var draft = null;
-  function buildSetup() {
-    var body = $('setupBody');
-    body.textContent = '';
-    FIELDS.forEach(function (g) {
-      var group = el('fieldset', 'setup-group');
-      group.appendChild(el('h3', null, g[0]));
-      g[1].forEach(function (f) {
-        var id = 'cfg-' + f.k.replace(/\./g, '-');
-        var wrap = el('div', 'field' + (f.wide ? ' field-wide' : ''));
-        var l = el('label', null, f.label); l.htmlFor = id;
-        var inp = el(f.type === 'textarea' ? 'textarea' : 'input');
-        if (f.type !== 'textarea') inp.type = 'text';
-        inp.maxLength = f.type === 'textarea' ? 280 : 60;
-        if (f.inputmode) inp.inputMode = f.inputmode;
-        if (f.autocomplete) inp.autocomplete = f.autocomplete;
-        inp.id = id;
-        inp.value = getPath(draft, f.k);
-        inp.addEventListener('input', function () { setPath(draft, f.k, inp.value); onDraftChange(); });
-        wrap.appendChild(l);
-        wrap.appendChild(inp);
-        group.appendChild(wrap);
-      });
-      body.appendChild(group);
-    });
-  }
-
   /**
-   * Team setup edits a draft and previews it on this page. The page's own URL
-   * is never changed, and closing the panel restores whatever this page was
-   * (company or team), so the company page can't turn into a team page.
+   * A director picks their team, then adds contact details. Details save on
+   * this device (so they're there next visit) and travel in the team link.
+   * Editing previews on this page without changing its URL; closing the
+   * panel restores the page as it was.
    */
+  var PROFILE_KEY = 'wpi-director:v1';
   var linkTimer = 0, pageCfg = null;
-  function onDraftChange() {
-    cfg = C.mergeTeam(D, draft);
+
+  function loadProfile() {
+    try {
+      var p = JSON.parse(localStorage.getItem(PROFILE_KEY) || 'null');
+      return p && typeof p === 'object' ? p : {};
+    } catch (e) { return {}; }
+  }
+  function saveProfile(p) {
+    try { localStorage.setItem(PROFILE_KEY, JSON.stringify(p)); return true; } catch (e) { return false; }
+  }
+
+  function readForm() {
+    return {
+      slug: $('setupTeam').value,
+      contactTitle: $('setupRole').value,
+      contactPhone: $('setupPhone').value,
+      contactEmail: $('setupEmail').value,
+      note: $('setupNote').value
+    };
+  }
+
+  function fillForm(p) {
+    var slug = Object.prototype.hasOwnProperty.call(TEAMS, p.slug) ? p.slug : '';
+    $('setupTeam').value = slug;
+    $('setupRole').value = p.contactTitle || D.team.contactTitle;
+    $('setupNote').value = p.note || '';
+    var t = TEAMS[slug] || {};
+    $('setupName').value = t.director || '';
+    // Official details from js/teams.js are shown but can't be changed here.
+    $('setupPhone').value = t.phone || p.contactPhone || '';
+    $('setupEmail').value = t.email || p.contactEmail || '';
+    $('setupPhone').readOnly = !!t.phone;
+    $('setupEmail').readOnly = !!t.email;
+    $('contactGroup').hidden = !slug;
+  }
+
+  function onFormChange() {
+    var p = readForm();
+    $('contactGroup').hidden = !p.slug;
+    if (p.slug) {
+      var t = TEAMS[p.slug];
+      $('setupName').value = t.director;
+      cfg = C.mergeTeam(D, { team: teamBlock(p.slug, p) });
+    } else {
+      cfg = C.mergeConfig(D, {});
+    }
     renderAll();
+    $('saveStatus').textContent = saveProfile(p) ? 'Saved on this device.' : 'This browser blocked saving; your link still has everything.';
     clearTimeout(linkTimer);
-    linkTimer = setTimeout(updateLink, 120);
+    linkTimer = setTimeout(function () { updateLink(p); }, 120);
   }
 
-  function slugify(s) {
-    return String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40);
-  }
-
-  function updateLink() {
-    var diff = C.diffConfig(D, cfg);
+  function updateLink(p) {
     $('copyStatus').textContent = '';
     var open = $('openTeamPage');
-    if (!diff) {
+    if (!p.slug) {
       $('shareLink').value = '';
-      $('shareLink').placeholder = 'Add your contact info to create your team link';
       $('copyLink').disabled = true;
       open.hidden = true;
       return Promise.resolve();
     }
-    return encodePlan(diff).then(function (code) {
-      // `n` is a readable label so the link is recognisable; the page ignores it.
-      var label = slugify(cfg.team.contactName || (cfg.team.name !== D.team.name ? cfg.team.name : ''));
-      var url = baseUrl() + '?' + (label ? 'n=' + label + '&' : '') + 't=' + code;
+    var block = teamBlock(p.slug, p), extra = {};
+    LINK_KEYS.forEach(function (k) {
+      var fromList = k === 'contactPhone' ? TEAMS[p.slug].phone : k === 'contactEmail' ? TEAMS[p.slug].email : '';
+      var dflt = k === 'note' ? D.team.note : k === 'contactTitle' ? D.team.contactTitle : '';
+      if (!fromList && block[k] && block[k] !== dflt) extra[k] = block[k];
+    });
+    var base = location.origin + location.pathname + 'team/' + p.slug + '/';
+    var done = function (url) {
       $('shareLink').value = url;
       $('copyLink').disabled = false;
       open.href = url;
       open.hidden = false;
-    });
+    };
+    if (!Object.keys(extra).length) { done(base); return Promise.resolve(); }
+    return encodePlan(extra).then(function (code) { done(base + '?t=' + code); });
   }
 
   function openSetup() {
     pageCfg = cfg;
-    draft = JSON.parse(JSON.stringify(cfg));
-    buildSetup();
-    updateLink();
+    var saved = loadProfile();
+    var here = teamSlug();
+    // On a team page, start from that team; otherwise from what this device saved.
+    var p = here && saved.slug !== here
+      ? { slug: here, contactTitle: cfg.team.contactTitle, contactPhone: cfg.team.contactPhone, contactEmail: cfg.team.contactEmail, note: cfg.team.note === D.team.note ? '' : cfg.team.note }
+      : saved;
+    fillForm(p);
+    $('saveStatus').textContent = saved.slug ? 'Your details are saved on this device.' : '';
+    updateLink(readForm());
     var dlg = $('setup');
     if (typeof dlg.showModal === 'function') dlg.showModal(); else dlg.setAttribute('open', '');
   }
 
   function wireSetup() {
+    var list = $('setupTeam');
+    Object.keys(TEAMS).forEach(function (slug) {
+      var o = el('option', null, TEAMS[slug].name + ' · ' + TEAMS[slug].director);
+      o.value = slug;
+      list.appendChild(o);
+    });
+    ['setupTeam', 'setupRole', 'setupPhone', 'setupEmail', 'setupNote'].forEach(function (id) {
+      $(id).addEventListener(id === 'setupTeam' ? 'change' : 'input', onFormChange);
+    });
     $('openSetup').addEventListener('click', openSetup);
     $('applySetup').addEventListener('click', function () { $('setup').close(); });
     $('setup').addEventListener('close', function () {
@@ -898,9 +913,12 @@
       if (pageCfg) { cfg = pageCfg; pageCfg = null; renderAll(); }
     });
     $('resetSetup').addEventListener('click', function () {
-      draft = JSON.parse(JSON.stringify(D));
-      buildSetup();
-      onDraftChange();
+      try { localStorage.removeItem(PROFILE_KEY); } catch (e) { /* ignore */ }
+      fillForm({});
+      cfg = C.mergeConfig(D, {});
+      renderAll();
+      updateLink(readForm());
+      $('saveStatus').textContent = 'Cleared from this device.';
     });
     $('copyLink').addEventListener('click', function () {
       var inp = $('shareLink');
@@ -950,6 +968,11 @@
   }
 
   // ---------- boot ----------
+  // Team page: team and director render immediately; contact details carried
+  // in the link are decoded right after.
+  var slugHere = teamSlug();
+  if (slugHere) cfg = C.mergeTeam(D, { team: teamBlock(slugHere) });
+
   loadInputs();
   wire();
   wireSetup();
@@ -958,11 +981,11 @@
   wireVideos();
   setupPwa();
 
-  // Team file (?team=slug) first, then any ?t= link overrides on top.
-  Promise.all([readSlugPlan(), readLinkPlan().catch(function () { return null; })]).then(function (res) {
-    if (!res[0] && !res[1]) return;
-    cfg = C.mergeTeam(D, res[0] || {});
-    if (res[1]) cfg = C.mergeTeam(D, { team: Object.assign({}, cfg.team, res[1].team || {}) });
-    renderAll();
-  });
+  if (slugHere) {
+    readLinkPlan().then(function (o) {
+      if (!o) return;
+      cfg = C.mergeTeam(D, { team: teamBlock(slugHere, o) });
+      renderAll();
+    });
+  }
 })();
