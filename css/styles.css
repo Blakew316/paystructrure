@@ -285,6 +285,47 @@ body[data-period="standard"] .ramp-only { display: none; }
 .note cite { display: block; margin-top: 8px; font-style: normal; font-size: 0.88rem; color: var(--muted); font-weight: 500; }
 .disclaimer { font-size: 0.8rem; color: var(--muted); max-width: 80ch; }
 
+/* ---------- goal planner + statement calculator ---------- */
+.goal, .stmt { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: 20px; align-items: start; }
+.goal-controls, .stmt-controls { display: grid; gap: 20px; }
+.input-xl input { font-size: 1.9rem; font-weight: 600; letter-spacing: -0.03em; padding-block: 12px; padding-left: 34px; }
+.input-xl span { font-size: 1.5rem; left: 16px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { padding: 7px 14px; border-radius: 999px; border: 0; background: var(--surface-2); color: var(--ink); font-size: 0.88rem; font-weight: 500; font-variant-numeric: tabular-nums; transition: background-color .15s, color .15s; }
+.chip:hover { background: #e2e2e7; }
+.chip[aria-pressed="true"] { background: var(--blue); color: #fff; }
+.goal-result { background: linear-gradient(180deg, var(--period-tint), transparent 160px), var(--surface); box-shadow: var(--shadow); display: grid; gap: 6px; }
+.goal-headline { font-family: var(--font-display); margin-top: 6px; display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.goal-headline #goalDeals { font-size: clamp(3rem, 6vw, 4.2rem); font-weight: 600; letter-spacing: -0.045em; line-height: 1; font-variant-numeric: tabular-nums; }
+.goal-headline #goalDealsUnit { font-size: 1.2rem; font-weight: 500; color: var(--ink-2); }
+.goal-sub { color: var(--ink-2); }
+.goal-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-top: 14px; padding-top: 16px; border-top: 1px solid var(--line); }
+.goal-stats:empty { display: none; }
+.goal-result .fine { margin-top: 10px; }
+.stmt-result { box-shadow: var(--shadow); }
+.stmt-result .next-tier { margin-top: 12px; }
+.stmt-tiers { margin-top: 16px; display: grid; border-radius: 14px; overflow: hidden; background: var(--bg); }
+.stmt-row { display: flex; justify-content: space-between; gap: 12px; padding: 10px 14px; font-size: 0.9rem; color: var(--ink-2); font-variant-numeric: tabular-nums; border-top: 1px solid var(--surface); }
+.stmt-row:first-child { border-top: 0; }
+.stmt-row span:last-child { text-align: right; font-weight: 500; }
+.stmt-row.on { background: var(--ramp-tint); color: var(--ink); }
+.stmt-row.on span:last-child { color: var(--green-ink); font-weight: 600; }
+.stmt-result > .fine { margin-top: 14px; }
+
+/* ---------- install hint (iOS Safari) ---------- */
+.install {
+  position: fixed; z-index: 20; left: 50%; transform: translateX(-50%);
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px)); width: min(440px, calc(100vw - 32px));
+  display: flex; gap: 12px; align-items: center; padding: 12px 12px 12px 14px; border-radius: 18px;
+  background: rgba(255, 255, 255, 0.86); backdrop-filter: saturate(1.8) blur(20px); -webkit-backdrop-filter: saturate(1.8) blur(20px);
+  box-shadow: 0 10px 40px rgba(18, 24, 58, 0.18), 0 0 0 0.5px rgba(18, 24, 58, 0.08);
+}
+.install img { width: 44px; height: 44px; border-radius: 10px; flex: none; }
+.install p { font-size: 0.86rem; color: var(--ink-2); line-height: 1.35; min-width: 0; }
+.install p strong { display: block; color: var(--ink); font-weight: 600; }
+.install .share { display: inline-block; vertical-align: -2px; width: 14px; height: 14px; }
+.install button { flex: none; border: 0; background: var(--surface-2); width: 30px; height: 30px; border-radius: 50%; color: var(--ink-2); font-size: 1rem; line-height: 1; }
+
 /* ---------- career guide ---------- */
 .btn-dl { display: inline-flex; align-items: center; gap: 6px; text-decoration: none; white-space: nowrap; }
 .guide-card {
@@ -330,7 +371,7 @@ body[data-period="standard"] .ramp-only { display: none; }
 
 /* ---------- responsive ---------- */
 @media (max-width: 900px) {
-  .calc, .ninety, .residual { grid-template-columns: minmax(0, 1fr); }
+  .calc, .ninety, .residual, .goal, .stmt { grid-template-columns: minmax(0, 1fr); }
   .result { position: static; }
   .rules { grid-template-columns: minmax(0, 1fr); }
   .guide-card { grid-template-columns: minmax(0, 1fr); }
@@ -345,7 +386,7 @@ body[data-period="standard"] .ramp-only { display: none; }
   .intro { padding-block: 28px 20px; }
   .fields, .setup-group { grid-template-columns: minmax(0, 1fr); }
   .compare-row { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 1fr); gap: 8px; padding: 10px 12px; font-size: 0.8rem; }
-  .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .stats, .goal-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .deals-value output { font-size: 2.8rem; }
   .tick { font-size: 0.64rem; }
   .link-row { flex-direction: column; }

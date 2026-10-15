@@ -17,14 +17,40 @@
     return Math.max(0, Math.floor(num(v)));
   }
 
-  /** Highest tier reached plus the next tier up. Tiers are [threshold, amount] pairs. */
+  /**
+   * Best-paying tier reached plus the next tier that pays more.
+   * Tiers are [threshold, amount] pairs sorted by threshold. Taking the best
+   * amount (not the last threshold) means an extra deal can never lower pay,
+   * even if a manager enters non-increasing amounts.
+   */
   function tierFor(tiers, n) {
     var hit = null, next = null;
     for (var i = 0; i < tiers.length; i++) {
-      if (n >= tiers[i][0]) hit = tiers[i];
-      else if (!next) next = tiers[i];
+      var t = tiers[i];
+      if (n >= t[0]) { if (!hit || t[1] >= hit[1]) hit = t; }
+      else if (!next && t[1] > (hit ? hit[1] : 0)) next = t;
     }
     return { hit: hit, next: next, amount: hit ? hit[1] : 0 };
+  }
+
+  /**
+   * The bonus ladder that actually applies. Ramp-up pays whichever is larger of
+   * the ramp tier and the standard tier at each deal count, so a ramp rep at
+   * 20 deals still gets the standard 20-deal bonus. Steps that don't raise pay
+   * are dropped.
+   */
+  function effectiveTiers(cfg, ramp) {
+    var lists = ramp ? [cfg.rampTiers, cfg.monthlyTiers] : [cfg.monthlyTiers];
+    var marks = [];
+    lists.forEach(function (l) { l.forEach(function (t) { if (marks.indexOf(t[0]) < 0) marks.push(t[0]); }); });
+    marks.sort(function (a, b) { return a - b; });
+    var out = [], best = 0;
+    marks.forEach(function (m) {
+      var amt = 0;
+      lists.forEach(function (l) { amt = Math.max(amt, tierFor(l, m).amount); });
+      if (amt > best) { out.push([m, amt]); best = amt; }
+    });
+    return out;
   }
 
   /** Statement volume bonus for one deal with a statement of `volume` per month. */
@@ -50,8 +76,7 @@
 
     var base = (deals - small) * cfg.upfront[key] + small * cfg.smallDeal[key];
     var commission = ramp ? base * cfg.rampCommissionMultiplier : base;
-    var tiers = ramp ? cfg.rampTiers : cfg.monthlyTiers;
-    var tier = tierFor(tiers, deals);
+    var tier = tierFor(effectiveTiers(cfg, ramp), deals);
     var statementEach = statementBonus(cfg.statement, inp.stmtVolume);
     var statement = stmt * statementEach;
     var equipment = Math.round(Math.max(0, num(inp.equipProfit)) * cfg.equipmentShare / 100);
@@ -94,6 +119,23 @@
       winner: cfg.stack90Day ? 'both' : (fast90.amount > signing ? 'fast90' : (signing > 0 ? 'signing' : 'none')),
       total: fast30 + applied
     };
+  }
+
+  /**
+   * Fewest deals per month whose estimated pay reaches `goal`.
+   * `inp` is the agent's deal mix (pricing, small/lead/statement deals); `other`
+   * is income already counted toward the goal (e.g. current residuals).
+   * Returns null when the goal needs more than `max` deals.
+   */
+  function dealsForGoal(cfg, inp, ramp, goal, other, max) {
+    var need = num(goal) - num(other);
+    var limit = max || 200;
+    if (need <= 0) return { deals: 0, estimate: monthEstimate(cfg, Object.assign({}, inp, { deals: 0 }), ramp) };
+    for (var d = 1; d <= limit; d++) {
+      var r = monthEstimate(cfg, Object.assign({}, inp, { deals: d }), ramp);
+      if (r.total >= need) return { deals: d, estimate: r };
+    }
+    return null;
   }
 
   /** Estimated monthly residual for one merchant. */
@@ -191,6 +233,8 @@
 
   var api = {
     tierFor: tierFor,
+    effectiveTiers: effectiveTiers,
+    dealsForGoal: dealsForGoal,
     statementBonus: statementBonus,
     monthEstimate: monthEstimate,
     ninetyDay: ninetyDay,

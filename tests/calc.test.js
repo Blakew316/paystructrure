@@ -52,17 +52,35 @@ test('sub-counts cannot exceed total deals', () => {
   assert.equal(r.statement, 150);
 });
 
-test('90-day bonuses: best-of by default, stacking when enabled', () => {
+test('90-day Fast Start stacks on the other bonuses by default', () => {
   const a = C.ninetyDay(D, 5, 30, true);
   assert.equal(a.fast30, 1000);
   assert.equal(a.signing, 15000);
   assert.equal(a.fast90.amount, 3000);
-  assert.equal(a.total, 1000 + 15000);
-  const b = C.ninetyDay(Object.assign({}, D, { stack90Day: true }), 5, 30, false);
-  assert.equal(b.total, 1000 + 10000 + 3000);
-  const c = C.ninetyDay(D, 0, 90, false);
-  assert.equal(c.winner, 'fast90');
-  assert.equal(c.total, 15000);
+  assert.equal(a.total, 1000 + 15000 + 3000);
+  const b = C.ninetyDay(Object.assign({}, D, { stack90Day: false }), 0, 90, false);
+  assert.equal(b.winner, 'fast90');
+  assert.equal(b.total, 15000);
+});
+
+test('ramp bonus doubles only up to 10 deals, never pays less than standard', () => {
+  assert.deepEqual(C.effectiveTiers(D, true), [[5, 1000], [8, 1500], [10, 2000], [20, 2500]]);
+  assert.deepEqual(C.effectiveTiers(D, false), D.monthlyTiers);
+  const at = n => C.monthEstimate(D, { deals: n }, true).bonus;
+  assert.equal(at(10), 2000);
+  assert.equal(at(12), 2000);
+  assert.equal(at(15), 2000);
+  assert.equal(at(20), 2500);
+  for (let n = 1; n < 30; n++) assert.ok(at(n + 1) >= at(n), 'bonus dropped at ' + (n + 1));
+});
+
+test('goal planner finds the fewest deals that reach the goal', () => {
+  const mix = { pricing: 'cash' };
+  // standard cash: 10 deals = 4000 + 1000 = 5000
+  assert.equal(C.dealsForGoal(D, mix, false, 5000, 0).deals, 10);
+  assert.equal(C.dealsForGoal(D, mix, false, 5001, 0).deals, 11);
+  assert.equal(C.dealsForGoal(D, mix, false, 5000, 6000).deals, 0);
+  assert.equal(C.dealsForGoal(D, mix, false, 10000000, 0), null);
 });
 
 test('residuals start in month 5 and need 3 deals/month before vesting', () => {

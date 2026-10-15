@@ -2,8 +2,12 @@
 
 A static, dependency-free site where Wholesale Payments agents estimate their pay:
 upfront commission, monthly bonuses, ramp-up bonuses, statement bonuses, equipment
-sales, lead deductions, and a 24-month residual and vesting projection. It also
-hosts the downloadable career guide PDF.
+sales, lead deductions, and a 24-month residual and vesting projection. It also has
+a monthly goal planner (deals and appointments needed to hit a dollar goal), a
+per-deal statement bonus calculator, and the downloadable career guide PDF.
+
+It installs as a home-screen app called **WPI Agent Pay** (iPhone: Safari → Share →
+Add to Home Screen) and works offline after the first visit.
 
 Open `index.html` through any static host (or `npm start` locally, then visit
 http://localhost:8080).
@@ -15,8 +19,8 @@ The period toggle at the top switches between the two plans:
 | | Ramp-Up (months 1–3) | Standard (month 4+) |
 |---|---|---|
 | Upfront commission | 2× per deal; second half pays at $5K and 10 transactions | 1× |
-| Monthly bonus | Doubled tiers, paid in two halves | Agreement tiers |
-| 30-day, 25-deal and 90-day bonuses | Shown | Hidden |
+| Monthly bonus | Doubled up to 10 deals, paid in two halves; standard tier above that when it pays more | Agreement tiers |
+| 30-day, 25-deal and 90-day bonuses | Shown (the 90-day Fast Start stacks) | Hidden |
 
 ## Team links (for managers)
 
@@ -25,11 +29,11 @@ The period toggle at the top switches between the two plans:
 3. Click **Copy link** and send it to your agents.
 
 Only the values that differ from the company plan are compressed into the link's
-`#team=` fragment. Nothing is stored on a server, and the fragment is never sent
-to one.
+`?t=` parameter, so the plan survives "Add to Home Screen". Nothing is stored on a
+server. Older `#team=` links still work.
 
 For a short, permanent link, commit `teams/<slug>.json` (see `teams/example.json`)
-and share `https://<site>/?team=<slug>`. A `#team=` link on top of it overrides it.
+and share `https://<site>/?team=<slug>`. A `?t=` link on top of it overrides it.
 
 ## Career guide PDF
 
@@ -49,6 +53,13 @@ To point a team's download button at its own guide, set **Team career guide** to
 `js/config.js` holds the company plan, sourced from the 2026 Agent Agreement
 (Schedule A, Monthly and Fast Start bonuses, Addendum I) and the New Hire
 Compensation Package. All pay math is in `js/calc.js`; run `npm test` for its tests.
+
+## Home-screen app
+
+`manifest.webmanifest` and `sw.js` make the site installable. Icons in
+`assets/icons/` are built from the logo mark. When you change any cached file
+(HTML, CSS, JS, logo), bump `VERSION` in `sw.js` so installed apps pick up the
+update on their next launch.
 
 ## Hosting
 

@@ -32,9 +32,9 @@
 
     // Agreement "Monthly Bonuses" page.
     monthlyTiers: [[5, 500], [8, 750], [10, 1000], [12, 1250], [15, 1750], [20, 2500]],
-    // New Hire package doubles the monthly bonus during ramp-up. The package lists
-    // 5/8/10; 12/15/20 are the agreement tiers doubled.
-    rampTiers: [[5, 1000], [8, 1500], [10, 2000], [12, 2500], [15, 3500], [20, 5000]],
+    // Ramp-up doubles the monthly bonus up to 10 deals only. Above that, ramp
+    // reps fall back to the standard tiers when those pay more (see calc.effectiveTiers).
+    rampTiers: [[5, 1000], [8, 1500], [10, 2000]],
 
     // New Hire package: 5 deals in the first 30 days.
     fastStart30: { deals: 5, bonus: 1000 },
@@ -42,13 +42,14 @@
     signing: { deals: 25, option1: 10000, option1Min: 3000, option2: 15000, option2Min: 5000 },
     // Agreement "Fast Start Bonus": deals in the first 90 days, paid in month 5.
     fastStart90: [[30, 3000], [50, 5000], [90, 15000]],
-    // false = the agent gets the larger of the 25-deal bonus and the 90-day Fast Start.
-    stack90Day: false,
+    // true = the 90-day Fast Start stacks on top of the 25-deal bonus.
+    stack90Day: true,
 
     // Addendum I "Statement Volume Tiers", paid per deal with a qualifying statement.
     statement: { lowMin: 20000, low: 75, midMin: 50000, mid: 200, topMin: 60000, topBase: 200, step: 10000, stepBonus: 100 },
 
     equipmentShare: 70,   // % of (sale price - equipment cost)
+    closeRate: 20,        // % of company appointments expected to close
     leadDeduction: 50,    // per deal closed from a company appointment
 
     residual: {

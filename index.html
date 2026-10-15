@@ -9,6 +9,13 @@
 <meta name="color-scheme" content="light only">
 <meta name="theme-color" content="#f5f5f7">
 <link rel="icon" type="image/png" href="assets/mark.png">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="WPI Agent Pay">
+<meta name="application-name" content="WPI Agent Pay">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
@@ -24,7 +31,7 @@
     <div class="topbar-right">
       <span class="team-chip" id="teamChip">Wholesale Payments</span>
       <button class="btn-ghost" id="openSetup" type="button">Team setup</button>
-      <a class="btn btn-dl guide-link head-dl" href="assets/career-guide.pdf" download="Wholesale-Payments-Career-Guide.pdf">Career guide <span aria-hidden="true">↓</span></a>
+      <a class="btn btn-dl guide-link head-dl" href="assets/career-guide.pdf" download="Wholesale-Payments-Career-Guide.pdf" target="_blank" rel="noopener">Career guide <span aria-hidden="true">↓</span></a>
     </div>
   </div>
 </header>
@@ -74,8 +81,8 @@
         <div class="field field-wide">
           <span class="field-label" id="pricingLabel">How your deals are priced</span>
           <div class="seg" role="radiogroup" aria-labelledby="pricingLabel">
-            <button type="button" role="radio" class="seg-opt" data-pricing="traditional" aria-checked="true">Traditional <small id="tradRate">$300/deal</small></button>
-            <button type="button" role="radio" class="seg-opt" data-pricing="cash" aria-checked="false">Cash discount <small id="cashRate">$400/deal</small></button>
+            <button type="button" role="radio" class="seg-opt" data-pricing="cash" aria-checked="true">Cash discount <small id="cashRate">$400/deal</small></button>
+            <button type="button" role="radio" class="seg-opt" data-pricing="traditional" aria-checked="false">Traditional <small id="tradRate">$300/deal</small></button>
           </div>
         </div>
         <div class="field">
@@ -115,6 +122,72 @@
       <p class="fine" id="payoutNote"></p>
     </aside>
   </div>
+
+  <section class="section" aria-labelledby="goalTitle">
+    <div class="section-head">
+      <p class="eyebrow">Monthly goal</p>
+      <h2 id="goalTitle">What it takes to hit your number</h2>
+      <p class="section-lede">Type what you want to make this month. You'll see the deals and appointments it takes, using your deal mix above and the period you picked.</p>
+    </div>
+    <div class="goal">
+      <div class="panel goal-controls">
+        <div class="field">
+          <label for="goalAmount">I want to make this month</label>
+          <div class="input-pre input-xl"><span>$</span><input type="number" id="goalAmount" min="0" step="500" value="10000" inputmode="numeric"></div>
+          <div class="chips" id="goalChips" aria-label="Quick goals">
+            <button type="button" class="chip" data-goal="5000">$5K</button>
+            <button type="button" class="chip" data-goal="8000">$8K</button>
+            <button type="button" class="chip" data-goal="9000">$9K</button>
+            <button type="button" class="chip" data-goal="10000">$10K</button>
+            <button type="button" class="chip" data-goal="15000">$15K</button>
+          </div>
+        </div>
+        <div class="field">
+          <label for="goalResidual">Residuals you already earn each month</label>
+          <div class="input-pre"><span>$</span><input type="number" id="goalResidual" min="0" step="100" value="0" inputmode="numeric"></div>
+          <span class="hint">Counted toward your goal, so you need fewer new deals.</span>
+        </div>
+      </div>
+      <div class="panel goal-result" aria-live="polite">
+        <p class="result-period" id="goalPeriod">Ramp-Up month</p>
+        <p class="goal-headline"><span id="goalDeals">0</span> <span id="goalDealsUnit">deals</span></p>
+        <p class="goal-sub" id="goalSub"></p>
+        <div class="goal-stats" id="goalStats"></div>
+        <p class="fine" id="goalNote"></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="stmtTitle">
+    <div class="section-head">
+      <p class="eyebrow">Statement volume bonus</p>
+      <h2 id="stmtTitle">What a bigger statement pays you</h2>
+      <p class="section-lede">Send in the merchant's processing statement with the application and you earn a bonus on top of your upfront. Enter the monthly volume on their statement to see exactly what that deal pays.</p>
+    </div>
+    <div class="stmt">
+      <div class="panel stmt-controls">
+        <div class="field">
+          <label for="stmtCalcVolume">Monthly volume on the merchant's statement</label>
+          <div class="input-pre input-xl"><span>$</span><input type="number" id="stmtCalcVolume" min="0" step="1000" value="85000" inputmode="numeric"></div>
+        </div>
+        <input type="range" id="stmtCalcSlider" min="0" max="300000" step="1000" value="85000" aria-label="Monthly statement volume">
+        <div class="chips" id="stmtChips" aria-label="Example volumes">
+          <button type="button" class="chip" data-volume="25000">$25K</button>
+          <button type="button" class="chip" data-volume="55000">$55K</button>
+          <button type="button" class="chip" data-volume="100000">$100K</button>
+          <button type="button" class="chip" data-volume="200000">$200K</button>
+        </div>
+      </div>
+      <div class="panel stmt-result">
+        <p class="result-label">This deal pays you</p>
+        <p class="total" id="stmtDealTotal">$0</p>
+        <dl class="breakdown" id="stmtBreakdown"></dl>
+        <p class="next-tier" id="stmtNext"></p>
+        <div class="stmt-tiers" id="stmtTiers" role="table" aria-label="Statement bonus tiers"></div>
+        <p class="fine">The statement must be submitted with the application and dated within the last 90 days. If the merchant doesn't process the statement amount, the bonus is deducted after 60 days.</p>
+      </div>
+    </div>
+  </section>
 
   <section class="section ramp-only" aria-labelledby="ninetyTitle">
     <div class="section-head">
@@ -194,7 +267,7 @@
         <p class="eyebrow">Take it with you</p>
         <h2 id="guideTitle">The career guide</h2>
         <p class="section-lede">Nine pages on how the opportunity works: earnings, your first three months, the 25-deal milestone, and who to talk to. Keep it on your phone or send it to someone you're recruiting.</p>
-        <a class="btn btn-dl guide-link" href="assets/career-guide.pdf" download="Wholesale-Payments-Career-Guide.pdf">Download the PDF <span aria-hidden="true">↓</span></a>
+        <a class="btn btn-dl guide-link" href="assets/career-guide.pdf" download="Wholesale-Payments-Career-Guide.pdf" target="_blank" rel="noopener">Download the PDF <span aria-hidden="true">↓</span></a>
       </div>
       <div class="guide-pages" aria-hidden="true">
         <span class="gp gp-1"><b>Build something that keeps paying.</b></span>
@@ -238,6 +311,12 @@
     </div>
   </form>
 </dialog>
+
+<div class="install" id="installHint" hidden>
+  <img src="assets/icons/apple-touch-icon.png" alt="">
+  <p><strong>Add WPI Agent Pay to your Home Screen</strong>Tap <svg class="share" viewBox="0 0 16 16" aria-label="Share" role="img"><path d="M8 1.5v8.5M5 4.5l3-3 3 3" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M5.5 7H4a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V8a1 1 0 0 0-1-1h-1.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg> then “Add to Home Screen”.</p>
+  <button type="button" id="installClose" aria-label="Dismiss">✕</button>
+</div>
 
 <script src="js/config.js"></script>
 <script src="js/calc.js"></script>
