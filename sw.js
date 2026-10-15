@@ -7,7 +7,7 @@
  */
 'use strict';
 
-const VERSION = 'wpi-pay-v16';
+const VERSION = 'wpi-careers-v1';
 const SHELL = [
   './',
   'index.html',
@@ -17,8 +17,11 @@ const SHELL = [
   'js/app.js',
   'assets/logo.png',
   'assets/mark.png',
-  'assets/icons/apple-touch-icon.png',
-  'assets/icons/icon-192.png',
+  'assets/icons/apple-touch-icon.png?v=3',
+  'assets/photos/hq-award.webp',
+  'assets/photos/vested-spotlight.webp',
+  'assets/photos/team-event.webp',
+  'assets/photos/rep-award.webp',
   'manifest.webmanifest'
 ];
 

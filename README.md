@@ -24,8 +24,7 @@ Contact details are blank by default. Until a sales director fills in **Your con
 Team setup, the site shows no name, phone or email and refers to "your sales director".
 
 On desktop the tabs sit in the header; on phones they become a bottom tab bar. Each
-tab can be linked directly (`…/#earnings`, `…/#talk`); older links such as `#goal`
-or `#residuals` still land on the right tab.
+tab can be linked directly (`…/#earnings`, `…/#talk`).
 
 Open `index.html` through any static host (or `npm start` locally, then visit
 http://localhost:8080).
@@ -45,7 +44,12 @@ The period toggle at the top switches between the two plans:
 1. Open the site and click **Team setup**.
 2. Fill in **Your contact info** (name, title, phone, email) so the Let's talk tab's
    Call, Text and Email buttons reach you. Optionally set a team name and a note.
-3. Click **Copy link** and send it to your agents.
+3. Click **Copy link** (or **Open team page**) and send that link to your agents.
+
+The company page and each team page are separate addresses. A team link looks like
+`https://<site>/?n=jordan-reyes&t=…`: `n` is a readable label and `t` carries the
+team details. Editing in Team setup previews the change but never alters the page
+you're on; closing the panel puts it back.
 
 Pay can't be changed per team. Team links and `teams/<slug>.json` files only carry
 the team block (name, note, contact); every pay number comes from `js/config.js`,
@@ -81,14 +85,15 @@ Compensation Package. All pay math is in `js/calc.js`; run `npm test` for its te
 
 ## Home-screen app
 
-`manifest.webmanifest` and `sw.js` make the site installable. Icons in
-`assets/icons/` are built from the logo mark. When you change any cached file
+`manifest.webmanifest` and `sw.js` make the site installable and usable offline.
+Icons in `assets/icons/` are built from the logo mark. When you change any cached file
 (HTML, CSS, JS, logo), bump `VERSION` in `sw.js` so installed apps pick up the
 update on their next launch.
 
 ## Hosting
 
 `.github/workflows/pages.yml` runs the tests and deploys to GitHub Pages on every
-push to `main`. Turn it on in **Settings → Pages → Source: GitHub Actions**.
+push to `main`. Only the runtime files (`index.html`, `manifest.webmanifest`,
+`sw.js`, `css/`, `js/`, `assets/`, `teams/`) are published. Turn it on in **Settings → Pages → Source: GitHub Actions**.
 GitHub Pages sites are public even when the repo is private, so anyone with the
 URL can see the plan.

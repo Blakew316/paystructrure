@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>WPI Careers</title>
-<meta name="description" content="Estimate your monthly pay, bonuses and residuals as a Wholesale Payments agent.">
+<meta name="description" content="Explore a career with Wholesale Payments and estimate your commission, bonuses and residuals.">
 <meta name="robots" content="noindex">
 <meta name="color-scheme" content="light only">
 <meta name="theme-color" content="#f5f5f7">
@@ -18,15 +18,19 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"></noscript>
 <link rel="stylesheet" href="css/styles.css">
+<script src="js/config.js" defer></script>
+<script src="js/calc.js" defer></script>
+<script src="js/app.js" defer></script>
 </head>
 <body data-period="ramp" data-view="opportunity">
 
 <header class="topbar">
   <div class="wrap topbar-inner">
     <a class="brand" href="./" aria-label="WPI Careers home">
-      <img class="logo" src="assets/logo.png" alt="Wholesale Payments" width="540" height="142">
+      <img class="logo" src="assets/logo.png" alt="Wholesale Payments" width="390" height="102" fetchpriority="high">
     </a>
     <nav class="tabs" aria-label="Sections">
       <div class="tablist" role="tablist" id="tablist">
@@ -73,10 +77,10 @@
         </div>
       </div>
       <div class="hero-photos" aria-label="Life at Wholesale Payments">
-        <figure class="ph ph-1"><img src="assets/photos/hq-award.jpg" alt="Rep receiving an award with two leaders in front of the Wholesale Payments sign at HQ" width="414" height="414"><figcaption>Wins celebrated at HQ</figcaption></figure>
-        <figure class="ph ph-2"><img src="assets/photos/vested-spotlight.jpg" alt="Vested Rep Spotlight graphic for Mathias Thomas" width="414" height="414"><figcaption>Vested rep spotlight</figcaption></figure>
-        <figure class="ph ph-3"><img src="assets/photos/team-event.jpg" alt="Wholesale Payments team at an industry event booth" width="414" height="414"><figcaption>The team on the road</figcaption></figure>
-        <figure class="ph ph-4"><img src="assets/photos/rep-award.jpg" alt="Rep holding an award in front of the Wholesale Payments sign" width="414" height="414"><figcaption>Production recognized</figcaption></figure>
+        <figure class="ph ph-1"><picture><source srcset="assets/photos/hq-award.webp" type="image/webp"><img src="assets/photos/hq-award.jpg" alt="Rep receiving an award with two leaders in front of the Wholesale Payments sign at HQ" width="414" height="414" decoding="async"></picture><figcaption>Wins celebrated at HQ</figcaption></figure>
+        <figure class="ph ph-2"><picture><source srcset="assets/photos/vested-spotlight.webp" type="image/webp"><img src="assets/photos/vested-spotlight.jpg" alt="Vested Rep Spotlight graphic for Mathias Thomas" width="414" height="414" decoding="async"></picture><figcaption>Vested rep spotlight</figcaption></figure>
+        <figure class="ph ph-3"><picture><source srcset="assets/photos/team-event.webp" type="image/webp"><img src="assets/photos/team-event.jpg" alt="Wholesale Payments team at an industry event booth" width="414" height="414" decoding="async"></picture><figcaption>The team on the road</figcaption></figure>
+        <figure class="ph ph-4"><picture><source srcset="assets/photos/rep-award.webp" type="image/webp"><img src="assets/photos/rep-award.jpg" alt="Rep holding an award in front of the Wholesale Payments sign" width="414" height="414" decoding="async"></picture><figcaption>Production recognized</figcaption></figure>
       </div>
     </div>
 
@@ -428,15 +432,16 @@
     </div>
     <div class="setup-body" id="setupBody"></div>
     <div class="setup-foot">
-      <label class="link-label" for="shareLink">Team link</label>
+      <label class="link-label" for="shareLink">Your team's link</label>
       <div class="link-row">
         <input type="text" id="shareLink" readonly>
         <button class="btn" type="button" id="copyLink">Copy link</button>
+        <a class="btn-ghost" id="openTeamPage" href="#" target="_blank" rel="noopener" hidden>Open team page</a>
       </div>
       <p class="fine" id="copyStatus" aria-live="polite"></p>
       <div class="setup-actions">
         <button class="btn-ghost" type="button" id="resetSetup">Clear team info</button>
-        <button class="btn" type="button" id="applySetup">Preview on this page</button>
+        <button class="btn" type="button" id="applySetup">Done</button>
       </div>
     </div>
   </form>
@@ -448,8 +453,5 @@
   <button type="button" id="installClose" aria-label="Dismiss">✕</button>
 </div>
 
-<script src="js/config.js"></script>
-<script src="js/calc.js"></script>
-<script src="js/app.js"></script>
 </body>
 </html>

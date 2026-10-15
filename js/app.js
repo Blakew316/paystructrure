@@ -1,11 +1,12 @@
 /**
- * Agent Pay Estimator UI.
+ * WPI Careers UI.
  *
- * Reads the team plan (company defaults + overrides from the link), wires the
- * sliders and inputs to PayCalc, and renders results. Team overrides arrive as
- * either `#team=<encoded>` (made by the Team setup panel) or `?team=<slug>`,
- * which loads teams/<slug>.json. All config-derived text is set with
- * textContent, never innerHTML, because links are untrusted input.
+ * Reads the company plan plus any team overrides from the link, wires the
+ * sliders and inputs to PayCalc, and renders results. A team page is either
+ * `?t=<encoded>` (made by the Team setup panel) or `?team=<slug>`, which loads
+ * teams/<slug>.json; both may only change the team block (name, note,
+ * contact), never pay. All config-derived text is set with textContent,
+ * never innerHTML, because links are untrusted input.
  */
 (function () {
   'use strict';
@@ -100,18 +101,10 @@
   }
   function baseUrl() { return location.origin + location.pathname; }
 
-  /**
-   * Team overrides from the link. New links use `?t=`; older `#team=` links
-   * still work and are rewritten to `?t=` so "Add to Home Screen" keeps the
-   * team plan (iOS drops the fragment from home-screen bookmarks).
-   */
+  /** Team overrides carried in a `?t=` link. */
   function readLinkPlan() {
     var q = new URLSearchParams(location.search).get('t');
-    if (q && /^[A-Za-z0-9_-]+$/.test(q)) return decodePlan(q);
-    var m = /(?:^#|&)team=([A-Za-z0-9_-]+)/.exec(location.hash);
-    if (!m) return Promise.resolve(null);
-    try { history.replaceState(null, '', baseUrl() + '?t=' + m[1]); } catch (e) { /* sandboxed */ }
-    return decodePlan(m[1]);
+    return q && /^[A-Za-z0-9_-]+$/.test(q) ? decodePlan(q) : Promise.resolve(null);
   }
   function readSlugPlan() {
     var slug = new URLSearchParams(location.search).get('team');
@@ -128,13 +121,10 @@
     var map = {
       rampMonths: String(cfg.rampMonths),
       rampMonthsPlus: String(cfg.rampMonths + 1),
-      firstPayMonth: String(cfg.residual.firstPayMonth),
       residualShare: cfg.residual.share + '%',
       signingDeals: String(cfg.signing.deals),
       signingBonus: money(cfg.signing.bonus),
       contactFirst: contactFirst(),
-      who: contactFirst() || 'Your sales director',
-      whoLower: contactFirst() || 'your sales director',
       rampMult: cfg.rampCommissionMultiplier + '×'
     };
     document.querySelectorAll('[data-bind]').forEach(function (n) {
@@ -490,7 +480,7 @@
       stats.appendChild(d);
     });
 
-    drawChart(rows, proj.vestedAt);
+    if (document.body.getAttribute('data-view') === 'growth') drawChart(rows, proj.vestedAt);
   }
 
   var SVGNS = 'http://www.w3.org/2000/svg';
@@ -646,10 +636,7 @@
 
   // ---------- tabs ----------
   var VIEWS = ['opportunity', 'earnings', 'growth', 'fit', 'talk'];
-  // Old tab links keep working.
-  var LEGACY = { pay: 'earnings', statement: 'earnings', goal: 'growth', residuals: 'growth', info: 'talk' };
-  function setView(v, focusTab, initial) {
-    if (LEGACY[v]) v = LEGACY[v];
+  function setView(v, focusTab) {
     if (VIEWS.indexOf(v) < 0) v = 'opportunity';
     var changed = document.body.getAttribute('data-view') !== v;
     document.body.setAttribute('data-view', v);
@@ -661,10 +648,7 @@
       t.tabIndex = on ? 0 : -1;
     });
     if (focusTab) $('tab-' + v).focus();
-    // On first load leave legacy #team= links alone; readLinkPlan rewrites those.
-    if (!initial || !location.hash || /^#[a-z]+$/.test(location.hash)) {
-      try { history.replaceState(null, '', location.pathname + location.search + (v === 'opportunity' ? '' : '#' + v)); } catch (e) { /* sandboxed */ }
-    }
+    try { history.replaceState(null, '', location.pathname + location.search + (v === 'opportunity' ? '' : '#' + v)); } catch (e) { /* sandboxed */ }
     if (changed) window.scrollTo(0, 0);
     if (v === 'growth') renderResidual();
   }
@@ -692,7 +676,7 @@
       b.addEventListener('click', function () { setView(b.getAttribute('data-goto')); });
     });
     var start = /^#([a-z]+)$/.exec(location.hash);
-    setView(start ? start[1] : 'opportunity', false, true);
+    setView(start ? start[1] : 'opportunity');
   }
 
   function setPeriod(p) {
@@ -812,16 +796,16 @@
   // ---------- team setup ----------
   var FIELDS = [
     ['Team', [
-      { k: 'team.name', label: 'Team name', type: 'text' },
-      { k: 'team.manager', label: 'Note signed by (optional)', type: 'text' },
-      { k: 'team.title', label: 'Title under the note', type: 'text' },
+      { k: 'team.name', label: 'Team name' },
+      { k: 'team.manager', label: 'Note signed by (optional)' },
+      { k: 'team.title', label: 'Title under the note' },
       { k: 'team.note', label: 'Note to your agents', type: 'textarea', wide: true }
     ]],
     ['Your contact info', [
-      { k: 'team.contactName', label: 'Your name', type: 'text' },
-      { k: 'team.contactTitle', label: 'Your title', type: 'text' },
-      { k: 'team.contactPhone', label: 'Phone (for Call and Text)', type: 'text', inputmode: 'tel' },
-      { k: 'team.contactEmail', label: 'Email', type: 'text', inputmode: 'email' }
+      { k: 'team.contactName', label: 'Your name', autocomplete: 'name' },
+      { k: 'team.contactTitle', label: 'Your title', autocomplete: 'organization-title' },
+      { k: 'team.contactPhone', label: 'Phone (for Call and Text)', inputmode: 'tel', autocomplete: 'tel' },
+      { k: 'team.contactEmail', label: 'Email', inputmode: 'email', autocomplete: 'email' }
     ]]
   ];
 
@@ -831,14 +815,6 @@
     var t = ks.reduce(function (a, k) { return a[k]; }, o);
     t[last] = v;
   }
-  function tiersToText(t) { return t.map(function (p) { return p[0] + ' = ' + p[1]; }).join(', '); }
-  function textToTiers(s) {
-    return String(s).split(/[,\n;]+/).map(function (part) {
-      var m = /(\d+)\D+?([\d,.]+)/.exec(part.trim());
-      return m ? [Number(m[1]), Number(m[2].replace(/,/g, ''))] : null;
-    }).filter(Boolean);
-  }
-
   var draft = null;
   function buildSetup() {
     var body = $('setupBody');
@@ -848,49 +824,30 @@
       group.appendChild(el('h3', null, g[0]));
       g[1].forEach(function (f) {
         var id = 'cfg-' + f.k.replace(/\./g, '-');
-        var val = getPath(draft, f.k);
-        if (f.type === 'check') {
-          var lab = el('label', 'check');
-          lab.htmlFor = id;
-          var cb = el('input'); cb.type = 'checkbox'; cb.id = id; cb.checked = !!val;
-          cb.addEventListener('change', function () { setPath(draft, f.k, cb.checked); onDraftChange(); });
-          lab.appendChild(cb); lab.appendChild(el('span', null, f.label));
-          group.appendChild(lab);
-          return;
-        }
         var wrap = el('div', 'field' + (f.wide ? ' field-wide' : ''));
         var l = el('label', null, f.label); l.htmlFor = id;
-        wrap.appendChild(l);
-        var inp;
-        if (f.type === 'textarea') { inp = el('textarea'); inp.value = val; inp.maxLength = 280; }
-        else { inp = el('input'); inp.type = f.type === 'text' || f.type === 'tiers' ? 'text' : 'number'; inp.value = f.type === 'tiers' ? tiersToText(val) : String(val); }
-        if (f.type === 'text') inp.maxLength = 60;
+        var inp = el(f.type === 'textarea' ? 'textarea' : 'input');
+        if (f.type !== 'textarea') inp.type = 'text';
+        inp.maxLength = f.type === 'textarea' ? 280 : 60;
         if (f.inputmode) inp.inputMode = f.inputmode;
-        if (inp.type === 'number') { inp.min = '0'; inp.step = 'any'; inp.inputMode = 'decimal'; }
+        if (f.autocomplete) inp.autocomplete = f.autocomplete;
         inp.id = id;
-        inp.addEventListener('input', function () {
-          var v = inp.value;
-          if (f.type === 'tiers') v = textToTiers(v);
-          else if (inp.type === 'number') { if (v === '') return; v = Number(v); }
-          setPath(draft, f.k, v);
-          onDraftChange();
-        });
-        if (f.pre || f.post) {
-          var box = el('div', f.pre ? 'input-pre' : 'input-post');
-          if (f.pre) box.appendChild(el('span', null, f.pre));
-          box.appendChild(inp);
-          if (f.post) box.appendChild(el('span', null, f.post));
-          wrap.appendChild(box);
-        } else wrap.appendChild(inp);
-        if (f.type === 'tiers') wrap.appendChild(el('span', 'hint', 'Example: 5 = 500, 8 = 750, 10 = 1000'));
-        if (f.hint) wrap.appendChild(el('span', 'hint', f.hint));
+        inp.value = getPath(draft, f.k);
+        inp.addEventListener('input', function () { setPath(draft, f.k, inp.value); onDraftChange(); });
+        wrap.appendChild(l);
+        wrap.appendChild(inp);
         group.appendChild(wrap);
       });
       body.appendChild(group);
     });
   }
 
-  var linkTimer = 0;
+  /**
+   * Team setup edits a draft and previews it on this page. The page's own URL
+   * is never changed, and closing the panel restores whatever this page was
+   * (company or team), so the company page can't turn into a team page.
+   */
+  var linkTimer = 0, pageCfg = null;
   function onDraftChange() {
     cfg = C.mergeTeam(D, draft);
     renderAll();
@@ -898,22 +855,34 @@
     linkTimer = setTimeout(updateLink, 120);
   }
 
+  function slugify(s) {
+    return String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40);
+  }
+
   function updateLink() {
     var diff = C.diffConfig(D, cfg);
     $('copyStatus').textContent = '';
+    var open = $('openTeamPage');
     if (!diff) {
-      $('shareLink').value = baseUrl();
-      try { history.replaceState(null, '', baseUrl()); } catch (e) { /* sandboxed */ }
+      $('shareLink').value = '';
+      $('shareLink').placeholder = 'Add your contact info to create your team link';
+      $('copyLink').disabled = true;
+      open.hidden = true;
       return Promise.resolve();
     }
     return encodePlan(diff).then(function (code) {
-      var url = baseUrl() + '?t=' + code;
+      // `n` is a readable label so the link is recognisable; the page ignores it.
+      var label = slugify(cfg.team.contactName || (cfg.team.name !== D.team.name ? cfg.team.name : ''));
+      var url = baseUrl() + '?' + (label ? 'n=' + label + '&' : '') + 't=' + code;
       $('shareLink').value = url;
-      try { history.replaceState(null, '', url); } catch (e) { /* sandboxed */ }
+      $('copyLink').disabled = false;
+      open.href = url;
+      open.hidden = false;
     });
   }
 
   function openSetup() {
+    pageCfg = cfg;
     draft = JSON.parse(JSON.stringify(cfg));
     buildSetup();
     updateLink();
@@ -924,7 +893,10 @@
   function wireSetup() {
     $('openSetup').addEventListener('click', openSetup);
     $('applySetup').addEventListener('click', function () { $('setup').close(); });
-    $('applySetup').textContent = 'Done';
+    $('setup').addEventListener('close', function () {
+      clearTimeout(linkTimer);
+      if (pageCfg) { cfg = pageCfg; pageCfg = null; renderAll(); }
+    });
     $('resetSetup').addEventListener('click', function () {
       draft = JSON.parse(JSON.stringify(D));
       buildSetup();
