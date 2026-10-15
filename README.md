@@ -10,9 +10,19 @@ per-deal statement bonus calculator, and the downloadable career guide PDF.
 It installs as a home-screen app called **WPI Agent Pay** (iPhone: Safari → Share →
 Add to Home Screen) and works offline after the first visit.
 
-The site is organized into five tabs (Pay, Goal, Statement, Residuals, Pay rules).
-On desktop they sit in the header; on phones they become a bottom tab bar. Each tab
-can be linked directly, e.g. `…/#goal` or `…/#residuals`.
+The site blends recruiting and pay into five tabs:
+
+| Tab | What's on it |
+|---|---|
+| Opportunity | Hero, Inc. 5000, Earn / Build / Grow, what reps bring merchants, merchant program video |
+| Earnings | Ramp-Up vs Standard pay calculator, new-rep signing bonuses, statement bonus calculator |
+| Growth | Monthly goal planner, residual projection and vesting |
+| Your fit | Support system, company overview video, five-question self-check |
+| Let's talk | Sales director contact (call, text, email), FAQ, pay rules, career guide, manager note |
+
+On desktop the tabs sit in the header; on phones they become a bottom tab bar. Each
+tab can be linked directly (`…/#earnings`, `…/#talk`); older links such as `#goal`
+or `#residuals` still land on the right tab.
 
 Open `index.html` through any static host (or `npm start` locally, then visit
 http://localhost:8080).
@@ -30,7 +40,9 @@ The period toggle at the top switches between the two plans:
 ## Team links (for managers)
 
 1. Open the site and click **Team setup**.
-2. Change the team name, manager, note, or any pay number. The page updates live.
+2. Fill in **Your contact info** (name, title, phone, email) so the Let's talk tab's
+   Call, Text and Email buttons reach you, then change the team name, note, or any
+   pay number. The page updates live.
 3. Click **Copy link** and send it to your agents.
 
 Only the values that differ from the company plan are compressed into the link's

@@ -18,6 +18,11 @@
       manager: '',
       note: 'I take it personally to make sure you hit your bonuses each month.',
       title: 'Sales Director',
+      // Who agents and recruits reach from the "Let's talk" tab.
+      contactName: 'Cody Malone',
+      contactTitle: 'Sales Director',
+      contactPhone: '806-300-5599',
+      contactEmail: 'cody.malone@wholesalepayments.com',
       // Optional: a team slug whose assets/career-guide-<slug>.pdf replaces the company guide.
       guide: ''
     },

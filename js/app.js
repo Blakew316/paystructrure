@@ -131,6 +131,8 @@
       firstPayMonth: String(cfg.residual.firstPayMonth),
       residualShare: cfg.residual.share + '%',
       signingDeals: String(cfg.signing.deals),
+      signingBonus: money(cfg.signing.bonus),
+      contactFirst: contactFirst(),
       rampMult: cfg.rampCommissionMultiplier + '×'
     };
     document.querySelectorAll('[data-bind]').forEach(function (n) {
@@ -154,7 +156,55 @@
     var by = (cfg.team.name + ' ' + cfg.team.title).trim();
     $('managerNoteBy').textContent = '— ' + (cfg.team.manager ? cfg.team.manager + ', ' + by : by);
 
+    renderContact();
+    renderFaq();
+    $('standardsText').textContent = 'Submit daily merchant feedback by 8 PM and keep a ' + cfg.closeRate +
+      '% closing ratio. Deals you generate outside appointments count toward that ratio.';
     renderRules();
+  }
+
+  // ---------- contact (Let's talk) ----------
+  function contactFirst() { return (cfg.team.contactName.trim().split(/\s+/)[0]) || 'us'; }
+  function phoneDigits() {
+    var d = cfg.team.contactPhone.replace(/[^\d+]/g, '');
+    return /^\+?\d{7,15}$/.test(d) ? d : '';
+  }
+  function validEmail() {
+    var e = cfg.team.contactEmail.trim();
+    return /^[^\s@<>"'()]+@[^\s@<>"'()]+\.[A-Za-z]{2,}$/.test(e) ? e : '';
+  }
+  function renderContact() {
+    var name = cfg.team.contactName.trim() || cfg.team.name;
+    $('contactName').textContent = name;
+    $('contactRole').textContent = [cfg.team.contactTitle.trim(), cfg.team.name].filter(Boolean).join(' · ');
+    $('contactInitials').textContent = name.split(/\s+/).map(function (w) { return w.charAt(0); }).join('').slice(0, 2).toUpperCase();
+    var tel = phoneDigits(), mail = validEmail();
+    $('contactCall').hidden = !tel;
+    $('contactText').hidden = !tel;
+    $('contactEmail').hidden = !mail;
+    if (tel) { $('contactCall').href = 'tel:' + tel; $('contactText').href = 'sms:' + tel; }
+    if (mail) $('contactEmail').href = 'mailto:' + mail;
+    $('contactPhoneText').textContent = tel ? cfg.team.contactPhone.trim() : '';
+    $('contactEmailText').textContent = mail;
+  }
+
+  function renderFaq() {
+    var who = contactFirst();
+    var items = [
+      ['How does daily pay work?', 'Once a merchant crosses the processing threshold (5 transactions on separate cards and $1,000 in volume), you are paid the next day.'],
+      ['Are appointments guaranteed?', 'Complete the appointment certification in WPI University and you start receiving appointments, usually 2–3 a day. Availability depends on your market, and you keep access by sending feedback by 8 PM and holding a ' + cfg.closeRate + '% close rate.'],
+      ['What happens after the first three months?', 'Your commission and monthly bonuses move to the standard levels. Residuals start paying in month ' + cfg.residual.firstPayMonth + ' and keep growing with your book.'],
+      ['What should I ask before joining?', 'Ask ' + who + ' to walk you through the current commission schedule, your agreement terms, vesting, and how the 45× buyout is calculated.'],
+      ['Can I keep a copy of the opportunity?', 'Yes. Download the career guide at the bottom of this page and keep it on your phone.']
+    ];
+    var box = $('faq');
+    box.textContent = '';
+    items.forEach(function (q) {
+      var d = el('details', 'faq-item');
+      d.appendChild(el('summary', null, q[0]));
+      d.appendChild(el('p', null, q[1]));
+      box.appendChild(d);
+    });
   }
 
   function setPct(input) {
@@ -583,9 +633,12 @@
   }
 
   // ---------- tabs ----------
-  var VIEWS = ['pay', 'goal', 'statement', 'residuals', 'info'];
+  var VIEWS = ['opportunity', 'earnings', 'growth', 'fit', 'talk'];
+  // Old tab links keep working.
+  var LEGACY = { pay: 'earnings', statement: 'earnings', goal: 'growth', residuals: 'growth', info: 'talk' };
   function setView(v, focusTab, initial) {
-    if (VIEWS.indexOf(v) < 0) v = 'pay';
+    if (LEGACY[v]) v = LEGACY[v];
+    if (VIEWS.indexOf(v) < 0) v = 'opportunity';
     var changed = document.body.getAttribute('data-view') !== v;
     document.body.setAttribute('data-view', v);
     VIEWS.forEach(function (name) {
@@ -597,11 +650,11 @@
     });
     if (focusTab) $('tab-' + v).focus();
     // On first load leave legacy #team= links alone; readLinkPlan rewrites those.
-    if (!initial || !location.hash || /^#(pay|goal|statement|residuals|info)$/.test(location.hash)) {
-      try { history.replaceState(null, '', location.pathname + location.search + (v === 'pay' ? '' : '#' + v)); } catch (e) { /* sandboxed */ }
+    if (!initial || !location.hash || /^#[a-z]+$/.test(location.hash)) {
+      try { history.replaceState(null, '', location.pathname + location.search + (v === 'opportunity' ? '' : '#' + v)); } catch (e) { /* sandboxed */ }
     }
     if (changed) window.scrollTo(0, 0);
-    if (v === 'residuals') renderResidual();
+    if (v === 'growth') renderResidual();
   }
   function wireTabs() {
     document.querySelectorAll('.tab').forEach(function (t) {
@@ -617,8 +670,11 @@
         setView(VIEWS[i], true);
       });
     });
-    var start = /^#(pay|goal|statement|residuals|info)$/.exec(location.hash);
-    setView(start ? start[1] : 'pay', false, true);
+    document.querySelectorAll('[data-goto]').forEach(function (b) {
+      b.addEventListener('click', function () { setView(b.getAttribute('data-goto')); });
+    });
+    var start = /^#([a-z]+)$/.exec(location.hash);
+    setView(start ? start[1] : 'opportunity', false, true);
   }
 
   function setPeriod(p) {
@@ -739,10 +795,16 @@
   var FIELDS = [
     ['Team', [
       { k: 'team.name', label: 'Team name', type: 'text' },
-      { k: 'team.manager', label: 'Manager name', type: 'text' },
-      { k: 'team.title', label: 'Manager title (shown under the note)', type: 'text' },
+      { k: 'team.manager', label: 'Note signed by (optional)', type: 'text' },
+      { k: 'team.title', label: 'Title under the note', type: 'text' },
       { k: 'team.note', label: 'Note to your agents (shown at the bottom)', type: 'textarea', wide: true },
       { k: 'team.guide', label: 'Team career guide (optional)', type: 'text', wide: true, hint: 'Leave blank for the company guide. Enter a slug like "lubbock" once assets/career-guide-lubbock.pdf is published.' }
+    ]],
+    ['Your contact info', [
+      { k: 'team.contactName', label: 'Your name', type: 'text' },
+      { k: 'team.contactTitle', label: 'Your title', type: 'text' },
+      { k: 'team.contactPhone', label: 'Phone (for Call and Text)', type: 'text', inputmode: 'tel' },
+      { k: 'team.contactEmail', label: 'Email', type: 'text', inputmode: 'email' }
     ]],
     ['Upfront commission', [
       { k: 'upfront.cash', label: 'Cash discount, per deal', pre: '$' },
@@ -814,6 +876,7 @@
         if (f.type === 'textarea') { inp = el('textarea'); inp.value = val; inp.maxLength = 280; }
         else { inp = el('input'); inp.type = f.type === 'text' || f.type === 'tiers' ? 'text' : 'number'; inp.value = f.type === 'tiers' ? tiersToText(val) : String(val); }
         if (f.type === 'text') inp.maxLength = 60;
+        if (f.inputmode) inp.inputMode = f.inputmode;
         if (inp.type === 'number') { inp.min = '0'; inp.step = 'any'; inp.inputMode = 'decimal'; }
         inp.id = id;
         inp.addEventListener('input', function () {
@@ -889,6 +952,40 @@
     });
   }
 
+  // ---------- fit self-check ----------
+  var FIT_KEY = 'wp-fit:v1';
+  function wireFit() {
+    var boxes = [].slice.call(document.querySelectorAll('#fitList input'));
+    var saved = [];
+    try { saved = JSON.parse(localStorage.getItem(FIT_KEY) || '[]'); } catch (e) { /* ignore */ }
+    boxes.forEach(function (b) { b.checked = Array.isArray(saved) && saved.indexOf(b.value) >= 0; });
+    var lines = ['What do you bring?', 'A good start.', 'A good start.', 'Sounds like a fit.', 'Sounds like a fit.', 'You bring the drive.'];
+    function update() {
+      var on = boxes.filter(function (b) { return b.checked; });
+      $('fitCount').textContent = String(on.length);
+      $('fitHeadline').textContent = lines[on.length];
+      try { localStorage.setItem(FIT_KEY, JSON.stringify(on.map(function (b) { return b.value; }))); } catch (e) { /* ignore */ }
+    }
+    boxes.forEach(function (b) { b.addEventListener('change', update); });
+    update();
+  }
+
+  // ---------- click-to-play YouTube ----------
+  function wireVideos() {
+    document.querySelectorAll('.video').forEach(function (v) {
+      var id = v.getAttribute('data-yt');
+      if (!/^[A-Za-z0-9_-]{11}$/.test(id)) return;
+      v.querySelector('.video-play').addEventListener('click', function () {
+        var f = document.createElement('iframe');
+        f.src = 'https://www.youtube-nocookie.com/embed/' + id + '?autoplay=1&rel=0&playsinline=1';
+        f.title = v.querySelector('.video-meta span').textContent;
+        f.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
+        f.allowFullscreen = true;
+        v.querySelector('.video-play').replaceWith(f);
+      });
+    });
+  }
+
   // ---------- home-screen app ----------
   function setupPwa() {
     if ('serviceWorker' in navigator && location.protocol !== 'file:') {
@@ -915,6 +1012,8 @@
   wireSetup();
   renderAll();
   wireTabs();
+  wireFit();
+  wireVideos();
   setupPwa();
 
   // Team file (?team=slug) first, then any ?t= link overrides on top.
