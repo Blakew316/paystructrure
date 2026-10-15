@@ -10,6 +10,10 @@ per-deal statement bonus calculator, and the downloadable career guide PDF.
 It installs as a home-screen app called **WPI Agent Pay** (iPhone: Safari → Share →
 Add to Home Screen) and works offline after the first visit.
 
+The site is organized into five tabs (Pay, Goal, Statement, Residuals, Pay rules).
+On desktop they sit in the header; on phones they become a bottom tab bar. Each tab
+can be linked directly, e.g. `…/#goal` or `…/#residuals`.
+
 Open `index.html` through any static host (or `npm start` locally, then visit
 http://localhost:8080).
 

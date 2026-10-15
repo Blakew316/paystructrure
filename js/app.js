@@ -130,7 +130,8 @@
       rampMonthsPlus: String(cfg.rampMonths + 1),
       firstPayMonth: String(cfg.residual.firstPayMonth),
       residualShare: cfg.residual.share + '%',
-      signingDeals: String(cfg.signing.deals)
+      signingDeals: String(cfg.signing.deals),
+      rampMult: cfg.rampCommissionMultiplier + '×'
     };
     document.querySelectorAll('[data-bind]').forEach(function (n) {
       var v = map[n.getAttribute('data-bind')];
@@ -141,12 +142,6 @@
 
     $('tradRate').textContent = money(cfg.upfront.traditional) + '/deal';
     $('cashRate').textContent = money(cfg.upfront.cash) + '/deal';
-
-    $('cmpCommRamp').textContent = cfg.rampCommissionMultiplier + '× per deal';
-    var first = cfg.monthlyTiers.slice(0, 3);
-    $('cmpBonusLabel').textContent = 'Monthly bonus at ' + first.map(function (t) { return t[0]; }).join(' / ') + ' deals';
-    $('cmpBonusStd').textContent = first.map(function (t) { return money(t[1]); }).join(' / ');
-    $('cmpBonusRamp').textContent = first.map(function (t) { return money(C.tierFor(C.effectiveTiers(cfg, true), t[0]).amount); }).join(' / ');
 
     var slug = /^[a-z0-9-]{1,40}$/.test(cfg.team.guide) ? cfg.team.guide : '';
     document.querySelectorAll('.guide-link').forEach(function (link) {
@@ -380,41 +375,23 @@
 
   function renderNinety() {
     var n = C.ninetyDay(cfg, state.deals30, state.deals90);
+    var f = cfg.fastStart30, sg = cfg.signing;
     $('deals30Out').textContent = String(state.deals30);
     $('deals90Out').textContent = String(n.deals90);
     $('ninetyTotal').textContent = money(n.total);
-    $('ninetyRule').textContent = 'Both bonuses stack on top of your monthly pay.';
 
-    var box = $('bonusCards');
-    box.textContent = '';
+    $('fast30Amt').textContent = money(f.bonus);
+    $('fast30Desc').textContent = f.deals + ' deals in your first 30 days, each processing $1,000 and 5 transactions.';
+    $('bonus30').classList.toggle('earned', n.fast30 > 0);
+    $('fast30Pill').textContent = n.fast30 ? 'Earned' : plural(Math.max(0, f.deals - n.deals30), 'deal') + ' to go';
+    $('fast30Pill').className = 'pill' + (n.fast30 ? ' on' : '');
 
-    function card(title, amount, earned, desc, progress, pill) {
-      var c = el('article', 'bcard' + (earned ? ' earned' : ''));
-      c.appendChild(el('h3', null, title));
-      c.appendChild(el('span', 'amt', money(amount)));
-      var bar = el('div', 'progress');
-      var fill = el('i');
-      fill.style.width = Math.min(100, progress * 100) + '%';
-      bar.appendChild(fill);
-      c.appendChild(bar);
-      c.appendChild(el('p', null, desc));
-      var st = el('div', 'status');
-      st.appendChild(el('span', 'pill' + (earned ? ' on' : ''), pill));
-      c.appendChild(st);
-      box.appendChild(c);
-    }
-
-    var f = cfg.fastStart30;
-    card('30-Day Fast Start', f.bonus, n.fast30 > 0,
-      f.deals + ' deals in your first 30 days. Paid once those deals process $1,000 and 5 transactions.',
-      n.deals30 / f.deals,
-      n.fast30 ? 'Earned' : plural(Math.max(0, f.deals - n.deals30), 'deal') + ' to go');
-
-    var sg = cfg.signing;
-    card(sg.deals + '-Deal Signing Bonus', sg.bonus, n.signing > 0,
-      sg.deals + ' deals in your first 90 days, then 60 more days to get all ' + sg.deals + ' processing ' + money(sg.minVolume) + '+. The report runs once.',
-      n.deals90 / sg.deals,
-      n.signing ? 'Earned' : plural(Math.max(0, sg.deals - n.deals90), 'deal') + ' to go');
+    $('signingTitle').textContent = sg.deals + '-Deal Signing Bonus';
+    $('signingAmt').textContent = money(sg.bonus);
+    $('signingDesc').textContent = sg.deals + ' deals in your first 90 days, then 60 days to get all ' + sg.deals + ' processing ' + money(sg.minVolume) + '+. The report runs once.';
+    $('bonus90').classList.toggle('earned', n.signing > 0);
+    $('signingPill').textContent = n.signing ? 'Earned' : plural(Math.max(0, sg.deals - n.deals90), 'deal') + ' to go';
+    $('signingPill').className = 'pill' + (n.signing ? ' on' : '');
   }
 
   function residualInputs() {
@@ -577,6 +554,9 @@
     ];
     var box = $('rules');
     box.textContent = '';
+    // Two independent columns so opening one section never stretches its neighbour.
+    var cols = [el('div', 'rules-col'), el('div', 'rules-col')];
+    cols.forEach(function (c) { box.appendChild(c); });
     groups.forEach(function (g, i) {
       var d = el('details');
       if (i < 2) d.open = true;
@@ -584,7 +564,7 @@
       var ul = el('ul');
       g[1].forEach(function (t) { ul.appendChild(el('li', null, t)); });
       d.appendChild(ul);
-      box.appendChild(d);
+      cols[i % 2].appendChild(d);
     });
   }
 
@@ -611,6 +591,45 @@
     ['deals', 'deals30', 'deals90', 'stmtCalcSlider'].forEach(function (id) { setPct($(id)); });
   }
 
+  // ---------- tabs ----------
+  var VIEWS = ['pay', 'goal', 'statement', 'residuals', 'info'];
+  function setView(v, focusTab, initial) {
+    if (VIEWS.indexOf(v) < 0) v = 'pay';
+    var changed = document.body.getAttribute('data-view') !== v;
+    document.body.setAttribute('data-view', v);
+    VIEWS.forEach(function (name) {
+      var on = name === v;
+      $('view-' + name).hidden = !on;
+      var t = $('tab-' + name);
+      t.setAttribute('aria-selected', String(on));
+      t.tabIndex = on ? 0 : -1;
+    });
+    if (focusTab) $('tab-' + v).focus();
+    // On first load leave legacy #team= links alone; readLinkPlan rewrites those.
+    if (!initial || !location.hash || /^#(pay|goal|statement|residuals|info)$/.test(location.hash)) {
+      try { history.replaceState(null, '', location.pathname + location.search + (v === 'pay' ? '' : '#' + v)); } catch (e) { /* sandboxed */ }
+    }
+    if (changed) window.scrollTo(0, 0);
+    if (v === 'residuals') renderResidual();
+  }
+  function wireTabs() {
+    document.querySelectorAll('.tab').forEach(function (t) {
+      t.addEventListener('click', function () { setView(t.getAttribute('data-view')); });
+      t.addEventListener('keydown', function (e) {
+        var i = VIEWS.indexOf(t.getAttribute('data-view'));
+        if (e.key === 'ArrowRight') i = (i + 1) % VIEWS.length;
+        else if (e.key === 'ArrowLeft') i = (i - 1 + VIEWS.length) % VIEWS.length;
+        else if (e.key === 'Home') i = 0;
+        else if (e.key === 'End') i = VIEWS.length - 1;
+        else return;
+        e.preventDefault();
+        setView(VIEWS[i], true);
+      });
+    });
+    var start = /^#(pay|goal|statement|residuals|info)$/.exec(location.hash);
+    setView(start ? start[1] : 'pay', false, true);
+  }
+
   function setPeriod(p) {
     state.period = p === 'standard' ? 'standard' : 'ramp';
     renderPeriod();
@@ -635,7 +654,7 @@
       b.addEventListener('keydown', function (e) {
         if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
           e.preventDefault();
-          var other = b.getAttribute('data-period') === 'ramp' ? $('periodStd') : $('periodRamp');
+          var other = b.parentNode.querySelector('.period-opt:not([data-period="' + b.getAttribute('data-period') + '"])');
           other.focus(); other.click();
         }
       });
@@ -904,6 +923,7 @@
   wire();
   wireSetup();
   renderAll();
+  wireTabs();
   setupPwa();
 
   // Team file (?team=slug) first, then any ?t= link overrides on top.
