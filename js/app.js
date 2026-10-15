@@ -203,8 +203,7 @@
       ['How does daily pay work?', 'Once a merchant crosses the processing threshold (5 transactions on separate cards and $1,000 in volume), you are paid the next day.'],
       ['Are appointments guaranteed?', 'Complete the appointment certification in WPI University and you start receiving appointments, usually 2–3 a day. Availability depends on your market, and you keep access by sending feedback by 8 PM and holding a ' + cfg.closeRate + '% close rate.'],
       ['What happens after the first three months?', 'Your commission and monthly bonuses move to the standard levels. Residuals start paying in month ' + cfg.residual.firstPayMonth + ' and keep growing with your book.'],
-      ['What should I ask before joining?', 'Ask ' + who + ' to walk you through the current commission schedule, your agreement terms, vesting, and how the 45× buyout is calculated.'],
-      ['Can I keep a copy of the opportunity?', 'Yes. Download the career guide at the bottom of this page and keep it on your phone.']
+      ['What should I ask before joining?', 'Ask ' + who + ' to walk you through the current commission schedule, your agreement terms, vesting, and how the 45× buyout is calculated.']
     ];
     // Same two-column card layout as the pay rules below it.
     var box = $('faq');

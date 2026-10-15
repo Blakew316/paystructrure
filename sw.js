@@ -7,7 +7,7 @@
  */
 'use strict';
 
-const VERSION = 'wpi-pay-v11';
+const VERSION = 'wpi-pay-v12';
 const SHELL = [
   './',
   'index.html',

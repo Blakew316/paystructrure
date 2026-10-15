@@ -17,7 +17,7 @@
       name: 'Wholesale Payments',
       manager: '',
       note: 'I take it personally to make sure you hit your bonuses each month.',
-      title: 'Sales Director',
+      title: 'Team',
       // Who agents and recruits reach from the "Let's talk" tab. Blank until a
       // sales director fills in Team setup; the page hides contact UI meanwhile.
       contactName: '',

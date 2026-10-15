@@ -420,7 +420,7 @@ a.btn, a.btn-ghost { text-decoration: none; display: inline-flex; align-items: c
 .gp i:first-child { width: 70%; background: linear-gradient(90deg, var(--blue), var(--green)); opacity: 0.5; }
 .gp em { font-style: normal; font-family: var(--font-display); font-weight: 700; font-size: 1.15rem; color: var(--green-ink); }
 
-.info-foot { align-items: stretch; }
+.info-foot { align-items: stretch; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 
 /* ---------- team setup dialog ---------- */
 .setup {
@@ -463,7 +463,7 @@ a.btn, a.btn-ghost { text-decoration: none; display: inline-flex; align-items: c
   main.wrap { padding-bottom: calc(var(--tabbar-h) + 48px + env(safe-area-inset-bottom, 0px)); }
 }
 @media (max-width: 900px) {
-  .grid-2, .grid-res, .rules, .hero, .pillars { grid-template-columns: minmax(0, 1fr); }
+  .grid-2, .grid-res, .rules, .hero, .pillars, .info-foot { grid-template-columns: minmax(0, 1fr); }
   .hero-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .hero-stats > div:nth-child(3) { border-left: 0; padding-left: 0; }
   .hero-stats > div:nth-child(n+3) { border-top: 1px solid var(--line); }
