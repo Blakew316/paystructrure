@@ -254,8 +254,6 @@
       lad.appendChild(rung);
     });
 
-    $('payoutNote').textContent = 'Daily pay: once a merchant crosses the processing threshold (5 separate cards, $1,000), you are paid the next day. ' +
-      'Every deal in a bonus tier must hit the processing minimum within 90 days.';
 
     var each = C.statementBonus(cfg.statement, state.stmtVolume);
     $('stmtHint').textContent = each ? money(each) + ' bonus per qualifying deal.' : 'Under ' + money(cfg.statement.lowMin) + ' earns no statement bonus.';
@@ -281,7 +279,6 @@
       $('goalDeals').textContent = '200+';
       $('goalDealsUnit').textContent = 'deals';
       $('goalSub').textContent = 'That goal needs more than 200 deals this month at your current deal mix.';
-      $('goalNote').textContent = '';
       return;
     }
     var d = res.deals;
@@ -289,7 +286,6 @@
     $('goalDealsUnit').textContent = d === 1 ? 'deal this month' : 'deals this month';
     if (d === 0) {
       $('goalSub').textContent = 'Your residuals already cover this goal.';
-      $('goalNote').textContent = '';
       return;
     }
     var est = res.estimate;
@@ -310,10 +306,6 @@
       box.appendChild(el('b', null, s2[1]));
       stats.appendChild(box);
     });
-    $('goalNote').textContent = 'Appointments assume every deal comes from a company appointment at a ' + cfg.closeRate +
-      '% close rate. Deals you find yourself lower that number. ' +
-      (ramp ? 'Includes ramp-up double commission and bonuses.' : 'Uses standard commission and bonuses.') +
-      ' Does not include the 30-day or 25-deal bonuses.';
   }
 
   function renderStmt() {
@@ -559,7 +551,6 @@
     cols.forEach(function (c) { box.appendChild(c); });
     groups.forEach(function (g, i) {
       var d = el('details');
-      if (i < 2) d.open = true;
       d.appendChild(el('summary', null, g[0]));
       var ul = el('ul');
       g[1].forEach(function (t) { ul.appendChild(el('li', null, t)); });
