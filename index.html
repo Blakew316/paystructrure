@@ -260,8 +260,14 @@
         <h1>Hit your number. <em>Build your book.</em></h1>
       </div>
       <div class="period" role="radiogroup" aria-label="Pay period">
-        <button type="button" role="radio" class="period-opt" data-period="ramp" aria-checked="true"><span class="period-name">Ramp-Up</span></button>
-        <button type="button" role="radio" class="period-opt" data-period="standard" aria-checked="false"><span class="period-name">Standard</span></button>
+        <button type="button" role="radio" class="period-opt" data-period="ramp" aria-checked="true">
+          <span class="period-name">Ramp-Up</span>
+          <span class="period-sub">Months 1–<span data-bind="rampMonths">3</span> · <span data-bind="rampMult">2×</span> commission</span>
+        </button>
+        <button type="button" role="radio" class="period-opt" data-period="standard" aria-checked="false">
+          <span class="period-name">Standard</span>
+          <span class="period-sub">Month <span data-bind="rampMonthsPlus">4</span> onward</span>
+        </button>
       </div>
     </div>
 
@@ -296,7 +302,7 @@
         <p class="eyebrow">Beyond the first bonus</p>
         <h2>Think in relationships. <em>Build a portfolio.</em></h2>
       </div>
-    <div class="grid-res">
+    <div class="grid-2">
       <div class="card">
         <div class="field">
           <label for="resPace">Deals per month</label>
@@ -310,9 +316,13 @@
         <p class="per-merchant">≈ <strong id="perMerchant">$37.50</strong> per merchant per month to you</p>
       </div>
       <div class="card">
+        <p class="card-label">Residual projection</p>
         <div class="stats" id="resStats"></div>
-        <div class="chart" id="chart" role="img" aria-label="Projected monthly residual over 24 months"></div>
       </div>
+    </div>
+    <div class="card">
+      <p class="card-label">Monthly residual over 24 months</p>
+      <div class="chart" id="chart" role="img" aria-label="Projected monthly residual over 24 months"></div>
     </div>
     </div>
   </section>

@@ -502,7 +502,8 @@
   }
 
   function drawChart(rows, vestedAt) {
-    var W = 640, H = 250, L = 54, R = 14, T = 26, B = 30;
+    // Draw at the container's real width so labels stay at their CSS size.
+    var W = Math.max(320, Math.round($('chart').clientWidth) || 640), H = W < 560 ? 240 : 300, L = 54, R = 14, T = 26, B = 30;
     var maxV = niceMax(Math.max.apply(null, rows.map(function (r) { return r.paid; })) * 1.05);
     var x = function (m) { return L + (m - 1) / (rows.length - 1) * (W - L - R); };
     var y = function (v) { return T + (1 - v / maxV) * (H - T - B); };
@@ -667,6 +668,12 @@
     if (changed) window.scrollTo(0, 0);
     if (v === 'growth') renderResidual();
   }
+  var resizeTimer = 0;
+  window.addEventListener('resize', function () {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(function () { if (document.body.getAttribute('data-view') === 'growth') renderResidual(); }, 150);
+  });
+
   function wireTabs() {
     document.querySelectorAll('.tab').forEach(function (t) {
       t.addEventListener('click', function () { setView(t.getAttribute('data-view')); });
