@@ -123,7 +123,7 @@
     <div><b>Grow</b><span>Support + opportunity</span></div>
   </div>
   <div class="cover-foot">
-    <div>Your next chapter starts with a conversation.<strong>{{name}}</strong></div>
+    <div>Your next chapter starts with a conversation.{{coverName}}</div>
     <span>Wholesale Payments</span>
   </div>
 </section>
@@ -140,7 +140,7 @@
     <div class="item"><span class="n">03</span><div><h3>Give yourself room to grow.</h3><p>Dedicated sales management, an appointment program, and merchant tools support you as you develop your sales skills and production.</p></div></div>
   </div>
   <div class="callout"><p>The appeal is simple: your daily effort can create both immediate earnings and lasting value.</p></div>
-  <div class="foot"><span>{{name}} · Wholesale Payments</span><b>02</b></div>
+  <div class="foot"><span>{{byline}}</span><b>02</b></div>
 </section>
 
 <!-- 3. Company -->
@@ -155,7 +155,7 @@
     <div class="item"><span class="n">02</span><div><h3>Support behind the relationship.</h3><p>Dedicated sales manager support and merchant service resources help you develop accounts and maintain the partnerships you build.</p></div></div>
   </div>
   <p class="note">Company recognition is drawn from the 2025 Inc. 5000 handout.</p>
-  <div class="foot"><span>{{name}} · Wholesale Payments</span><b>03</b></div>
+  <div class="foot"><span>{{byline}}</span><b>03</b></div>
 </section>
 
 <!-- 4. Merchants -->
@@ -171,7 +171,7 @@
     <div class="tile"><span class="k">Rewards</span><h3>Give the partnership more value.</h3><p>Participating merchants earn points on transactions toward available rewards.</p></div>
   </div>
   <p class="note">CORE includes payment technology, funding, and rewards. MOMENTUM adds Customer Connect. Product availability, pricing, funding eligibility, and results depend on program terms.</p>
-  <div class="foot"><span>{{name}} · Wholesale Payments</span><b>04</b></div>
+  <div class="foot"><span>{{byline}}</span><b>04</b></div>
 </section>
 
 <!-- 5. Support -->
@@ -192,7 +192,7 @@
     </div>
   </div>
   <p class="lede" style="font-size:10.5pt;margin-top:24px">Build your own pipeline, too. Consistent outreach and follow-up keep you moving while scheduled appointments add opportunity.</p>
-  <div class="foot"><span>{{name}} · Wholesale Payments</span><b>05</b></div>
+  <div class="foot"><span>{{byline}}</span><b>05</b></div>
 </section>
 
 <!-- 6. Earnings -->
@@ -204,10 +204,10 @@
   <div class="list">
     <div class="item"><span class="n">01</span><div><h3>Upfront commissions + daily pay</h3><p>Compensation varies by equipment, merchant profile, pricing, and qualification. Discounts or missing fees can reduce payouts. Daily pay: once a merchant crosses the processing threshold, you're paid the next day.</p></div></div>
     <div class="item"><span class="n">02</span><div><h3>Lifetime vested residuals</h3><p>Build a portfolio of merchant relationships with recurring income potential. Vesting, residual calculations, and ongoing eligibility are governed by your agreement.</p></div></div>
-    <div class="item"><span class="n">03</span><div><h3>Buyout opportunities</h3><p>Company materials advertise buyout opportunities at 45X. Ask {{first}} how the multiple is calculated, what qualifies, and which terms apply.</p></div></div>
+    <div class="item"><span class="n">03</span><div><h3>Buyout opportunities</h3><p>Company materials advertise buyout opportunities at 45X. Ask {{who}} how the multiple is calculated, what qualifies, and which terms apply.</p></div></div>
   </div>
-  <p class="note" style="margin-top:auto;margin-bottom:16px">This is a production-based sales opportunity. Earnings are not guaranteed. Confirm the current commission schedule, employment classification, expenses, and agreement terms with {{first}} before joining.</p>
-  <div class="foot" style="margin-top:0"><span>{{name}} · Wholesale Payments</span><b>06</b></div>
+  <p class="note" style="margin-top:auto;margin-bottom:16px">This is a production-based sales opportunity. Earnings are not guaranteed. Confirm the current commission schedule, employment classification, expenses, and agreement terms with {{who}} before joining.</p>
+  <div class="foot" style="margin-top:0"><span>{{byline}}</span><b>06</b></div>
 </section>
 
 <!-- 7. First three months -->
@@ -229,7 +229,7 @@
     <p>Write 5 deals in your first 30 days. Paid once those deals process over $1,000 and reach 5 transactions.</p>
   </div>
   <p class="note">Example: 8 qualifying deals = $750 at the first monthly-bonus milestone + $750 at the second. After the first three months, standard commission and bonus terms apply.</p>
-  <div class="foot"><span>{{name}} · Wholesale Payments</span><b>07</b></div>
+  <div class="foot"><span>{{byline}}</span><b>07</b></div>
 </section>
 
 <!-- 8. 25-deal milestone -->
@@ -245,8 +245,8 @@
     <div class="k">One report. Prepare every account.</div>
     <p style="font-size:11pt;font-family:var(--body);font-weight:500;color:var(--ink-2)">The processing report is pulled one time only, so have all 25 merchants at the $5,000 level when it runs.</p>
   </div>
-  <p class="note">Confirm report timing and eligibility with {{first}}.</p>
-  <div class="foot"><span>{{name}} · Wholesale Payments</span><b>08</b></div>
+  <p class="note">Confirm report timing and eligibility with {{who}}.</p>
+  <div class="foot"><span>{{byline}}</span><b>08</b></div>
 </section>
 
 <!-- 9. Next chapter -->
@@ -268,11 +268,9 @@
   </div>
   <div class="cta">
     <span class="k">Your next step</span>
-    <h3>Talk with {{name}}.</h3>
-    <a href="tel:{{phoneDigits}}">{{phone}}</a>
-    <a href="mailto:{{email}}">{{email}}</a>
+    {{cta}}
   </div>
-  <div class="foot"><span>{{name}} · Wholesale Payments</span><b>09</b></div>
+  <div class="foot"><span>{{byline}}</span><b>09</b></div>
 </section>
 
 </body>

@@ -133,6 +133,8 @@
       signingDeals: String(cfg.signing.deals),
       signingBonus: money(cfg.signing.bonus),
       contactFirst: contactFirst(),
+      who: contactFirst() || 'Your sales director',
+      whoLower: contactFirst() || 'your sales director',
       rampMult: cfg.rampCommissionMultiplier + '×'
     };
     document.querySelectorAll('[data-bind]').forEach(function (n) {
@@ -164,7 +166,7 @@
   }
 
   // ---------- contact (Let's talk) ----------
-  function contactFirst() { return (cfg.team.contactName.trim().split(/\s+/)[0]) || 'us'; }
+  function contactFirst() { return cfg.team.contactName.trim().split(/\s+/)[0] || ''; }
   function phoneDigits() {
     var d = cfg.team.contactPhone.replace(/[^\d+]/g, '');
     return /^\+?\d{7,15}$/.test(d) ? d : '';
@@ -174,11 +176,18 @@
     return /^[^\s@<>"'()]+@[^\s@<>"'()]+\.[A-Za-z]{2,}$/.test(e) ? e : '';
   }
   function renderContact() {
-    var name = cfg.team.contactName.trim() || cfg.team.name;
+    var name = cfg.team.contactName.trim();
+    var first = contactFirst();
+    $('meetLink').hidden = !name;
+    $('contactPerson').hidden = !name;
     $('contactName').textContent = name;
     $('contactRole').textContent = [cfg.team.contactTitle.trim(), cfg.team.name].filter(Boolean).join(' · ');
-    $('contactInitials').textContent = name.split(/\s+/).map(function (w) { return w.charAt(0); }).join('').slice(0, 2).toUpperCase();
+    $('contactInitials').textContent = name ? name.split(/\s+/).map(function (w) { return w.charAt(0); }).join('').slice(0, 2).toUpperCase() : '';
     var tel = phoneDigits(), mail = validEmail();
+    $('contactActions').hidden = !tel && !mail;
+    $('contactLines').hidden = !tel && !mail;
+    $('contactCall').textContent = first ? 'Call ' + first : 'Call';
+    $('contactEmail').textContent = first ? 'Email ' + first : 'Email';
     $('contactCall').hidden = !tel;
     $('contactText').hidden = !tel;
     $('contactEmail').hidden = !mail;
@@ -189,7 +198,7 @@
   }
 
   function renderFaq() {
-    var who = contactFirst();
+    var who = contactFirst() || 'your sales director';
     var items = [
       ['How does daily pay work?', 'Once a merchant crosses the processing threshold (5 transactions on separate cards and $1,000 in volume), you are paid the next day.'],
       ['Are appointments guaranteed?', 'Complete the appointment certification in WPI University and you start receiving appointments, usually 2–3 a day. Availability depends on your market, and you keep access by sending feedback by 8 PM and holding a ' + cfg.closeRate + '% close rate.'],
@@ -197,13 +206,16 @@
       ['What should I ask before joining?', 'Ask ' + who + ' to walk you through the current commission schedule, your agreement terms, vesting, and how the 45× buyout is calculated.'],
       ['Can I keep a copy of the opportunity?', 'Yes. Download the career guide at the bottom of this page and keep it on your phone.']
     ];
+    // Same two-column card layout as the pay rules below it.
     var box = $('faq');
     box.textContent = '';
-    items.forEach(function (q) {
-      var d = el('details', 'faq-item');
+    var cols = [el('div', 'rules-col'), el('div', 'rules-col')];
+    cols.forEach(function (c) { box.appendChild(c); });
+    items.forEach(function (q, i) {
+      var d = el('details');
       d.appendChild(el('summary', null, q[0]));
-      d.appendChild(el('p', null, q[1]));
-      box.appendChild(d);
+      d.appendChild(el('p', 'rules-answer', q[1]));
+      cols[i % 2].appendChild(d);
     });
   }
 
@@ -952,24 +964,6 @@
     });
   }
 
-  // ---------- fit self-check ----------
-  var FIT_KEY = 'wp-fit:v1';
-  function wireFit() {
-    var boxes = [].slice.call(document.querySelectorAll('#fitList input'));
-    var saved = [];
-    try { saved = JSON.parse(localStorage.getItem(FIT_KEY) || '[]'); } catch (e) { /* ignore */ }
-    boxes.forEach(function (b) { b.checked = Array.isArray(saved) && saved.indexOf(b.value) >= 0; });
-    var lines = ['What do you bring?', 'A good start.', 'A good start.', 'Sounds like a fit.', 'Sounds like a fit.', 'You bring the drive.'];
-    function update() {
-      var on = boxes.filter(function (b) { return b.checked; });
-      $('fitCount').textContent = String(on.length);
-      $('fitHeadline').textContent = lines[on.length];
-      try { localStorage.setItem(FIT_KEY, JSON.stringify(on.map(function (b) { return b.value; }))); } catch (e) { /* ignore */ }
-    }
-    boxes.forEach(function (b) { b.addEventListener('change', update); });
-    update();
-  }
-
   // ---------- click-to-play YouTube ----------
   function wireVideos() {
     document.querySelectorAll('.video').forEach(function (v) {
@@ -1012,7 +1006,6 @@
   wireSetup();
   renderAll();
   wireTabs();
-  wireFit();
   wireVideos();
   setupPwa();
 

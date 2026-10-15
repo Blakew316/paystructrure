@@ -14,11 +14,14 @@ The site blends recruiting and pay into five tabs:
 
 | Tab | What's on it |
 |---|---|
-| Opportunity | Hero, Inc. 5000, Earn / Build / Grow, what reps bring merchants, merchant program video |
+| Opportunity | Hero with team photos, highlight stats, Inc. 5000, Earn / Build / Grow, what reps bring merchants, merchant program video |
 | Earnings | Ramp-Up vs Standard pay calculator, new-rep signing bonuses, statement bonus calculator |
 | Growth | Monthly goal planner, residual projection and vesting |
-| Your fit | Support system, company overview video, five-question self-check |
+| Your fit | Support system and company overview video |
 | Let's talk | Sales director contact (call, text, email), FAQ, pay rules, career guide, manager note |
+
+Contact details are blank by default. Until a sales director fills in **Your contact info** in
+Team setup, the site shows no name, phone or email and refers to "your sales director".
 
 On desktop the tabs sit in the header; on phones they become a bottom tab bar. Each
 tab can be linked directly (`…/#earnings`, `…/#talk`); older links such as `#goal`
@@ -60,6 +63,12 @@ and share `https://<site>/?team=<slug>`. A `?t=` link on top of it overrides it.
 npm install
 npm run build:guide                         # assets/career-guide.pdf
 node scripts/build-guide.js teams/foo.json  # assets/career-guide-foo.pdf, using its "guide" contact
+```
+
+Without a team file the guide names no contact. Photos for the Opportunity tab live in
+`assets/photos/`.
+
+```sh
 ```
 
 To point a team's download button at its own guide, set **Team career guide** to

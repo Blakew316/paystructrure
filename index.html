@@ -69,19 +69,24 @@
         <p class="hero-lede">Help business owners solve real problems, create income today, and build residual income for tomorrow.</p>
         <div class="hero-actions">
           <button type="button" class="btn btn-lg" data-goto="earnings">See what you could earn</button>
-          <button type="button" class="btn-link" data-goto="talk">Meet <span data-bind="contactFirst">Cody</span> →</button>
+          <button type="button" class="btn-link" id="meetLink" data-goto="talk" hidden>Meet <span data-bind="contactFirst"></span> →</button>
         </div>
         <p class="fine">For people ready to bet on their work ethic.</p>
       </div>
-      <div class="card hero-card">
-        <p class="card-label">Earn. Build. Grow.</p>
-        <div class="hero-stats">
-          <div><b><span data-bind="rampMult">2×</span></b><span>commission for your first <span data-bind="rampMonths">3</span> months</span></div>
-          <div><b data-bind="signingBonus">$15,000</b><span><span data-bind="signingDeals">25</span>-deal signing bonus</span></div>
-          <div><b>Next day</b><span>daily pay once a merchant processes</span></div>
-          <div><b><span data-bind="residualShare">50%</span></b><span>lifetime vested residuals</span></div>
-        </div>
-        <p class="hero-card-foot">Real conversations. Lasting opportunity.</p>
+      <div class="hero-photos" aria-label="Life at Wholesale Payments">
+        <figure class="ph ph-1"><img src="assets/photos/hq-award.jpg" alt="Rep receiving an award with two leaders in front of the Wholesale Payments sign at HQ" width="414" height="414"><figcaption>Wins celebrated at HQ</figcaption></figure>
+        <figure class="ph ph-2"><img src="assets/photos/vested-spotlight.jpg" alt="Vested Rep Spotlight graphic for Mathias Thomas" width="414" height="414"><figcaption>Vested rep spotlight</figcaption></figure>
+        <figure class="ph ph-3"><img src="assets/photos/team-event.jpg" alt="Wholesale Payments team at an industry event booth" width="414" height="414"><figcaption>The team on the road</figcaption></figure>
+        <figure class="ph ph-4"><img src="assets/photos/rep-award.jpg" alt="Rep holding an award in front of the Wholesale Payments sign" width="414" height="414"><figcaption>Production recognized</figcaption></figure>
+      </div>
+    </div>
+
+    <div class="card stat-strip">
+      <div class="hero-stats">
+        <div><b><span data-bind="rampMult">2×</span></b><span>commission for your first <span data-bind="rampMonths">3</span> months</span></div>
+        <div><b data-bind="signingBonus">$15,000</b><span><span data-bind="signingDeals">25</span>-deal signing bonus</span></div>
+        <div><b>Next day</b><span>daily pay once a merchant processes</span></div>
+        <div><b><span data-bind="residualShare">50%</span></b><span>lifetime vested residuals</span></div>
       </div>
     </div>
 
@@ -298,7 +303,7 @@
           <p class="eyebrow">Beyond the first bonus</p>
           <h2>Think in relationships. <em>Build a portfolio.</em></h2>
         </div>
-        <p class="block-aside">You earn <span data-bind="residualShare">50%</span> of the residual on every merchant you sign, every month they process. Company materials also advertise 45× buyout opportunities. <span data-bind="contactFirst">Cody</span> can walk you through the calculation, eligibility, and agreement terms.</p>
+        <p class="block-aside">You earn <span data-bind="residualShare">50%</span> of the residual on every merchant you sign, every month they process. Company materials also advertise 45× buyout opportunities. <span data-bind="who">Your sales director</span> can walk you through the calculation, eligibility, and agreement terms.</p>
       </div>
     <div class="grid-res">
       <div class="card">
@@ -350,28 +355,6 @@
       </div>
     </div>
 
-    <div class="section-block">
-      <div class="block-head">
-        <p class="eyebrow">Is this your next chapter?</p>
-        <h2>Bring the drive. <em>Build the skills.</em></h2>
-        <p>You don't need to arrive as a finished product. You do need to be willing to learn, stay consistent, and follow through. Check the statements that sound like you.</p>
-      </div>
-      <div class="grid-2">
-        <div class="card checklist" id="fitList">
-          <label class="fit-item"><input type="checkbox" value="work"><span><b>I'm willing to put in the work.</b><small>I create opportunity through consistent activity.</small></span></label>
-          <label class="fit-item"><input type="checkbox" value="coach"><span><b>I'm coachable.</b><small>I accept feedback and put it into practice.</small></span></label>
-          <label class="fit-item"><input type="checkbox" value="people"><span><b>I like connecting with people.</b><small>I listen, ask questions, and learn how to close.</small></span></label>
-          <label class="fit-item"><input type="checkbox" value="resilient"><span><b>I can recover from rejection.</b><small>I keep moving when a conversation doesn't go my way.</small></span></label>
-          <label class="fit-item"><input type="checkbox" value="follow"><span><b>I do what I say I'll do.</b><small>I follow through, even when nobody is watching.</small></span></label>
-        </div>
-        <div class="card result fit-result">
-          <p class="fit-score"><b id="fitCount">0</b><span>/ 5</span></p>
-          <h3 id="fitHeadline">What do you bring?</h3>
-          <p class="card-sub">Use this as a conversation starter with <span data-bind="contactFirst">Cody</span>, not a hiring test. Your choices stay on this device.</p>
-          <button type="button" class="btn btn-lg" data-goto="talk">Talk through your fit</button>
-        </div>
-      </div>
-    </div>
   </section>
 
   <!-- ============ 5. LET'S TALK ============ -->
@@ -380,26 +363,24 @@
       <p class="eyebrow">The next move is yours</p>
       <h1>Let's talk about <em>what you could build.</em></h1>
       <p>A real conversation about the role, your goals, and whether this is the right next move.</p>
-      <div class="person">
-        <span class="avatar" id="contactInitials" aria-hidden="true">CM</span>
-        <div><b id="contactName">Cody Malone</b><span id="contactRole">Sales Director · Wholesale Payments</span></div>
+      <div class="person" id="contactPerson" hidden>
+        <span class="avatar" id="contactInitials" aria-hidden="true"></span>
+        <div><b id="contactName"></b><span id="contactRole"></span></div>
       </div>
-      <div class="contact-actions">
-        <a class="btn btn-lg" id="contactCall" href="tel:8063005599">Call <span data-bind="contactFirst">Cody</span></a>
-        <a class="btn-ghost btn-lg" id="contactText" href="sms:8063005599">Send a text</a>
-        <a class="btn-ghost btn-lg" id="contactEmail" href="mailto:cody.malone@wholesalepayments.com">Email <span data-bind="contactFirst">Cody</span></a>
+      <div class="contact-actions" id="contactActions" hidden>
+        <a class="btn btn-lg" id="contactCall" href="#" hidden>Call</a>
+        <a class="btn-ghost btn-lg" id="contactText" href="#" hidden>Send a text</a>
+        <a class="btn-ghost btn-lg" id="contactEmail" href="#" hidden>Email</a>
       </div>
-      <p class="contact-lines"><span id="contactPhoneText">806-300-5599</span><span id="contactEmailText">cody.malone@wholesalepayments.com</span></p>
+      <p class="contact-lines" id="contactLines" hidden><span id="contactPhoneText"></span><span id="contactEmailText"></span></p>
     </div>
 
     <div class="section-block">
-      <div class="grid-2 align-start">
-        <div class="block-head">
-          <p class="eyebrow">A few things to know</p>
-          <h2>Good questions. <em>Clear answers.</em></h2>
-        </div>
-        <div class="faq" id="faq"></div>
+      <div class="block-head">
+        <p class="eyebrow">A few things to know</p>
+        <h2>Good questions. <em>Clear answers.</em></h2>
       </div>
+      <div class="rules" id="faq"></div>
     </div>
 
     <div class="section-block">
