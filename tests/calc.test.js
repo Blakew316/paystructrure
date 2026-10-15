@@ -34,33 +34,27 @@ test('ramp month doubles commission and uses ramp tiers (package example: 8 deal
   assert.equal(r.bonus, 1500);
 });
 
-test('small deals, lead deductions, statements, equipment', () => {
-  const r = C.monthEstimate(D, {
-    deals: 5, pricing: 'cash', smallDeals: 2, leadDeals: 3, stmtDeals: 1, stmtVolume: 30000, equipProfit: 1000
-  }, false);
-  assert.equal(r.base, 3 * 400 + 2 * 200);
-  assert.equal(r.leads, 150);
+test('statements and equipment add to the month', () => {
+  const r = C.monthEstimate(D, { deals: 5, pricing: 'cash', stmtDeals: 1, stmtVolume: 30000, equipProfit: 1000 }, false);
+  assert.equal(r.base, 5 * 400);
   assert.equal(r.statement, 75);
   assert.equal(r.equipment, 700);
-  assert.equal(r.total, 1600 + 500 + 75 + 700 - 150);
+  assert.equal(r.total, 2000 + 500 + 75 + 700);
 });
 
-test('sub-counts cannot exceed total deals', () => {
-  const r = C.monthEstimate(D, { deals: 2, smallDeals: 9, leadDeals: 9, stmtDeals: 9, stmtVolume: 20000 }, false);
-  assert.equal(r.smallDeals, 2);
-  assert.equal(r.leads, 100);
+test('statement count cannot exceed total deals', () => {
+  const r = C.monthEstimate(D, { deals: 2, stmtDeals: 9, stmtVolume: 20000 }, false);
   assert.equal(r.statement, 150);
 });
 
-test('90-day Fast Start stacks on the other bonuses by default', () => {
-  const a = C.ninetyDay(D, 5, 30, true);
+test('ramp signing bonuses: 30-day Fast Start and a flat $15,000 25-deal bonus stack', () => {
+  const a = C.ninetyDay(D, 5, 25);
   assert.equal(a.fast30, 1000);
   assert.equal(a.signing, 15000);
-  assert.equal(a.fast90.amount, 3000);
-  assert.equal(a.total, 1000 + 15000 + 3000);
-  const b = C.ninetyDay(Object.assign({}, D, { stack90Day: false }), 0, 90, false);
-  assert.equal(b.winner, 'fast90');
-  assert.equal(b.total, 15000);
+  assert.equal(a.total, 16000);
+  const b = C.ninetyDay(D, 4, 24);
+  assert.equal(b.total, 0);
+  assert.equal(C.ninetyDay(D, 10, 3).deals90, 10, '90-day count is at least the 30-day count');
 });
 
 test('ramp bonus doubles only up to 10 deals, never pays less than standard', () => {
@@ -83,14 +77,14 @@ test('goal planner finds the fewest deals that reach the goal', () => {
   assert.equal(C.dealsForGoal(D, mix, false, 10000000, 0), null);
 });
 
-test('residuals start in month 5 and need 3 deals/month before vesting', () => {
+test('residuals start in month 4 with no minimum deal count', () => {
   const per = C.residualPerMerchant(D, 15000, 50);
   assert.equal(per, 37.5);
   const p = C.projectResiduals(D, { dealsPerMonth: 10, perMerchant: per, attrition: 0, months: 6, monthlyUpfront: 0 });
-  assert.equal(p.rows[3].paid, 0);
-  assert.equal(p.rows[4].paid, 40 * 37.5);
-  const none = C.projectResiduals(D, { dealsPerMonth: 2, perMerchant: per, attrition: 0, months: 12, monthlyUpfront: 0 });
-  assert.equal(none.rows[11].cum, 0);
+  assert.equal(p.rows[2].paid, 0);
+  assert.equal(p.rows[3].paid, 30 * 37.5);
+  const slow = C.projectResiduals(D, { dealsPerMonth: 2, perMerchant: per, attrition: 0, months: 12, monthlyUpfront: 0 });
+  assert.ok(slow.rows[11].cum > 0);
 });
 
 test('vesting needs consecutive qualifying months', () => {
@@ -104,7 +98,6 @@ test('mergeConfig rejects junk and keeps types', () => {
     team: { name: '<img src=x onerror=alert(1)>'.repeat(5), extra: 'x' },
     upfront: { traditional: '350', cash: 'abc' },
     monthlyTiers: [[10, 900], ['x', 1], [5, 400], [10, 1000]],
-    stack90Day: 'yes',
     evil: { a: 1 }
   });
   assert.equal(c.team.name.length, 60);
@@ -112,7 +105,6 @@ test('mergeConfig rejects junk and keeps types', () => {
   assert.equal(c.upfront.traditional, 350);
   assert.equal(c.upfront.cash, 400);
   assert.deepEqual(c.monthlyTiers, [[5, 400], [10, 1000]]);
-  assert.equal(c.stack90Day, false);
   assert.equal(c.evil, undefined);
 });
 

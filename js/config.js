@@ -17,6 +17,7 @@
       name: 'Wholesale Payments',
       manager: '',
       note: 'I take it personally to make sure you hit your bonuses each month.',
+      title: 'Sales Director',
       // Optional: a team slug whose assets/career-guide-<slug>.pdf replaces the company guide.
       guide: ''
     },
@@ -26,8 +27,6 @@
 
     // Upfront commission per approved, processing deal (Addendum I "starting payment").
     upfront: { traditional: 300, cash: 400 },
-    // Swipers / wireless terminals / Authorize.net / home-based / salons.
-    smallDeal: { traditional: 100, cash: 200 },
     rampCommissionMultiplier: 2,
 
     // Agreement "Monthly Bonuses" page.
@@ -38,27 +37,21 @@
 
     // New Hire package: 5 deals in the first 30 days.
     fastStart30: { deals: 5, bonus: 1000 },
-    // New Hire package: 25 deals in the first 90 days.
-    signing: { deals: 25, option1: 10000, option1Min: 3000, option2: 15000, option2Min: 5000 },
-    // Agreement "Fast Start Bonus": deals in the first 90 days, paid in month 5.
-    fastStart90: [[30, 3000], [50, 5000], [90, 15000]],
-    // true = the 90-day Fast Start stacks on top of the 25-deal bonus.
-    stack90Day: true,
+    // 25 deals in the first 90 days; all 25 must reach minVolume when the report runs.
+    signing: { deals: 25, bonus: 15000, minVolume: 5000 },
 
     // Addendum I "Statement Volume Tiers", paid per deal with a qualifying statement.
     statement: { lowMin: 20000, low: 75, midMin: 50000, mid: 200, topMin: 60000, topBase: 200, step: 10000, stepBonus: 100 },
 
     equipmentShare: 70,   // % of (sale price - equipment cost)
     closeRate: 20,        // % of company appointments expected to close
-    leadDeduction: 50,    // per deal closed from a company appointment
 
     residual: {
       share: 50,           // Schedule A residual share %
-      firstPayMonth: 5,    // residuals start in month 5
-      minDeals: 3,         // approved deals per month required until vested
+      firstPayMonth: 4,    // residuals start in month 4
       volume: 15000,       // example: avg monthly volume per merchant
-      bps: 50,             // example: avg net margin per merchant, in basis points
-      attrition: 2         // example: % of merchants lost per month
+      bps: 50,             // avg net margin per merchant, in basis points (manager setting, not shown to agents)
+      attrition: 0         // % of merchants lost per month (manager setting, not shown to agents)
     },
 
     vesting: { months: 3, comp: 5000, accounts: 30 }

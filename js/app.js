@@ -19,21 +19,16 @@
     period: 'ramp',
     deals: 8,
     pricing: 'cash',
-    smallDeals: 0,
-    leadDeals: 0,
     stmtDeals: 1,
     stmtVolume: 30000,
     equipProfit: 0,
     deals30: 5,
     deals90: 25,
-    all5k: false,
     goalAmount: 10000,
     goalResidual: 0,
     stmtCalcVolume: 85000,
     resPace: null,          // null = follow the main slider
-    resVolume: null,        // null = team default
-    resBps: null,
-    resAttrition: null
+    resVolume: null         // null = team default
   };
 
   // ---------- helpers ----------
@@ -135,22 +130,17 @@
       rampMonthsPlus: String(cfg.rampMonths + 1),
       firstPayMonth: String(cfg.residual.firstPayMonth),
       residualShare: cfg.residual.share + '%',
-      signingDeals: String(cfg.signing.deals),
-      option2Min: money(cfg.signing.option2Min)
+      signingDeals: String(cfg.signing.deals)
     };
     document.querySelectorAll('[data-bind]').forEach(function (n) {
       var v = map[n.getAttribute('data-bind')];
       if (v != null) n.textContent = v;
     });
 
-    $('teamChip').textContent = cfg.team.name;
-    $('eyebrow').textContent = cfg.team.name === D.team.name ? 'Agent pay estimator' : cfg.team.name + ' · pay estimator';
     document.title = cfg.team.name === D.team.name ? 'Agent Pay Estimator' : cfg.team.name + ' Pay Estimator';
 
     $('tradRate').textContent = money(cfg.upfront.traditional) + '/deal';
     $('cashRate').textContent = money(cfg.upfront.cash) + '/deal';
-    $('leadHint').textContent = money(cfg.leadDeduction) + ' lead deduction each.';
-    $('equipHint').textContent = 'You keep ' + cfg.equipmentShare + '% once the merchant has paid in full.';
 
     $('cmpCommRamp').textContent = cfg.rampCommissionMultiplier + '× per deal';
     var first = cfg.monthlyTiers.slice(0, 3);
@@ -166,7 +156,8 @@
     var note = cfg.team.note.trim();
     $('managerNote').hidden = !note;
     $('managerNoteText').textContent = note;
-    $('managerNoteBy').textContent = cfg.team.manager ? '— ' + cfg.team.manager + ', ' + cfg.team.name : '— ' + cfg.team.name;
+    var by = (cfg.team.name + ' ' + cfg.team.title).trim();
+    $('managerNoteBy').textContent = '— ' + (cfg.team.manager ? cfg.team.manager + ', ' + by : by);
 
     renderRules();
   }
@@ -193,57 +184,54 @@
     });
   }
 
-  var shownTotal = 0, animId = 0;
-  function animateTotal(to) {
-    var node = $('total');
-    cancelAnimationFrame(animId);
-    if (reduceMotion) { node.textContent = money(to); shownTotal = to; return; }
-    var from = shownTotal, start = performance.now(), dur = 380;
-    function step(now) {
-      var p = Math.min(1, (now - start) / dur);
-      var e = 1 - Math.pow(1 - p, 3);
-      shownTotal = from + (to - from) * e;
-      node.textContent = money(shownTotal);
-      if (p < 1) animId = requestAnimationFrame(step);
+  /**
+   * Side-by-side Ramp-Up vs Standard table. rows: [label, rampValue, stdValue].
+   * The column for the period the agent picked is highlighted, and the column
+   * headers switch the period.
+   */
+  function renderSplit(box, totalLabel, totals, rows) {
+    box.textContent = '';
+    var cols = [['ramp', 'Ramp-Up', 'c-ramp'], ['standard', 'Standard', 'c-std']];
+    function cell(cls, text, role) {
+      var c = el('div', cls, text);
+      c.setAttribute('role', role || 'cell');
+      box.appendChild(c);
+      return c;
     }
-    animId = requestAnimationFrame(step);
-  }
-
-  function row(dl, label, sub, value, kind) {
-    var wrap = el('div');
-    var dt = el('dt', null, label);
-    if (sub) dt.appendChild(el('small', null, sub));
-    var dd = el('dd', kind || (value === 0 ? 'zero' : ''), (kind === 'neg' && value ? '−' : '') + money(Math.abs(value)));
-    wrap.appendChild(dt); wrap.appendChild(dd);
-    dl.appendChild(wrap);
+    cell('sp-label sp-head', '', 'columnheader');
+    cols.forEach(function (c) {
+      var h = cell('sp-head ' + c[2] + (state.period === c[0] ? ' on' : ''), null, 'columnheader');
+      var b = el('button', 'sp-switch', c[1]);
+      b.type = 'button';
+      b.setAttribute('aria-pressed', String(state.period === c[0]));
+      b.addEventListener('click', function () { setPeriod(c[0]); });
+      h.appendChild(b);
+    });
+    cell('sp-label sp-total', totalLabel, 'rowheader');
+    cell('sp-val sp-total c-ramp' + (state.period === 'ramp' ? ' on' : ''), money(totals[0]));
+    cell('sp-val sp-total c-std' + (state.period === 'standard' ? ' on' : ''), money(totals[1]));
+    rows.forEach(function (r, i) {
+      var last = i === rows.length - 1 ? ' sp-last' : '';
+      cell('sp-label' + last, r[0], 'rowheader');
+      cell('sp-val c-ramp' + (state.period === 'ramp' ? ' on' : '') + (r[1] ? '' : ' zero') + last, money(r[1]));
+      cell('sp-val c-std' + (state.period === 'standard' ? ' on' : '') + (r[2] ? '' : ' zero') + last, money(r[2]));
+    });
   }
 
   function renderMonth() {
     var ramp = state.period === 'ramp';
-    var r = C.monthEstimate(cfg, state, ramp);
-    var key = state.pricing === 'cash' ? 'cash' : 'traditional';
+    var rr = C.monthEstimate(cfg, state, true);
+    var rs = C.monthEstimate(cfg, state, false);
+    var r = ramp ? rr : rs;
 
     $('dealsOut').textContent = String(r.deals);
-    $('resultPeriod').textContent = ramp ? 'Ramp-Up month' : 'Standard month';
-    animateTotal(r.total);
-
-    var dl = $('breakdown');
-    dl.textContent = '';
-    var std = r.deals - r.smallDeals;
-    var commSub = plural(std, 'deal') + ' × ' + money(cfg.upfront[key]) +
-      (r.smallDeals ? ' + ' + r.smallDeals + ' × ' + money(cfg.smallDeal[key]) : '') +
-      (ramp && cfg.rampCommissionMultiplier !== 1 ? ', ' + cfg.rampCommissionMultiplier + '× for ramp-up' : '');
-    row(dl, 'Upfront commission', commSub, r.commission);
-    if (ramp && r.commissionSecond > 0) {
-      row(dl, '↳ paid when processing', money(r.commissionFirst) + ' at $1K & 5 transactions, ' + money(r.commissionSecond) + ' at $5K & 10 transactions', r.commissionSecond);
-      dl.lastChild.querySelector('dd').className = 'zero';
-    }
-    var doubled = ramp && r.tier.hit && C.tierFor(cfg.rampTiers, r.deals).amount === r.bonus;
-    var bonusSub = r.tier.hit ? plural(r.tier.hit[0], 'deal') + ' tier' + (doubled ? ', half at $1K & 5 transactions, half at $5K & 10' : (ramp ? ', standard tier' : '')) : 'Starts at ' + (tiersFor(state.period)[0] || [5])[0] + ' deals';
-    row(dl, 'Monthly bonus', bonusSub, r.bonus);
-    row(dl, 'Statement volume bonus', r.stmtDeals ? plural(r.stmtDeals, 'deal') + ' × ' + money(r.statementEach) : 'No qualifying statements', r.statement);
-    if (r.equipment) row(dl, 'Equipment sales', cfg.equipmentShare + '% of ' + money(state.equipProfit), r.equipment);
-    if (r.leads) row(dl, 'Lead deductions', plural(r.leadDeals, 'company appointment') + ' × ' + money(cfg.leadDeduction), r.leads, 'neg');
+    var rows = [
+      ['Upfront commission', rr.commission, rs.commission],
+      ['Monthly bonus', rr.bonus, rs.bonus],
+      ['Statement volume bonus', rr.statement, rs.statement]
+    ];
+    if (rr.equipment) rows.push(['Equipment sales', rr.equipment, rs.equipment]);
+    renderSplit($('breakdown'), 'This month', [rr.total, rs.total], rows);
 
     // next tier nudge
     var nt = $('nextTier');
@@ -274,7 +262,6 @@
     $('payoutNote').textContent = 'Daily pay: once a merchant crosses the processing threshold (5 separate cards, $1,000), you are paid the next day. ' +
       'Every deal in a bonus tier must hit the processing minimum within 90 days.';
 
-    $('smallHint').textContent = 'Paid ' + money(cfg.smallDeal[key]) + ' each unless the statement is over ' + (key === 'cash' ? '$5K' : '$10K') + '.';
     var each = C.statementBonus(cfg.statement, state.stmtVolume);
     $('stmtHint').textContent = each ? money(each) + ' bonus per qualifying deal.' : 'Under ' + money(cfg.statement.lowMin) + ' earns no statement bonus.';
 
@@ -331,16 +318,16 @@
     $('goalNote').textContent = 'Appointments assume every deal comes from a company appointment at a ' + cfg.closeRate +
       '% close rate. Deals you find yourself lower that number. ' +
       (ramp ? 'Includes ramp-up double commission and bonuses.' : 'Uses standard commission and bonuses.') +
-      ' Does not include 30-day, 25-deal or 90-day bonuses.';
+      ' Does not include the 30-day or 25-deal bonuses.';
   }
 
   function renderStmt() {
-    var ramp = state.period === 'ramp';
     var key = state.pricing === 'cash' ? 'cash' : 'traditional';
     var st = cfg.statement;
     var vol = state.stmtCalcVolume;
     var bonus = C.statementBonus(st, vol);
-    var comm = cfg.upfront[key] * (ramp ? cfg.rampCommissionMultiplier : 1);
+    var commStd = cfg.upfront[key];
+    var commRamp = commStd * cfg.rampCommissionMultiplier;
 
     if (document.activeElement !== $('stmtCalcVolume')) $('stmtCalcVolume').value = String(vol);
     var slider = $('stmtCalcSlider');
@@ -350,11 +337,10 @@
       c.setAttribute('aria-pressed', String(Number(c.getAttribute('data-volume')) === vol));
     });
 
-    $('stmtDealTotal').textContent = money(comm + bonus);
-    var dl = $('stmtBreakdown');
-    dl.textContent = '';
-    row(dl, 'Upfront commission', (key === 'cash' ? 'Cash discount' : 'Traditional') + ' deal' + (ramp && cfg.rampCommissionMultiplier !== 1 ? ', ' + cfg.rampCommissionMultiplier + '× for ramp-up' : ''), comm);
-    row(dl, 'Statement volume bonus', money(vol) + ' monthly volume', bonus);
+    renderSplit($('stmtBreakdown'), 'This deal', [commRamp + bonus, commStd + bonus], [
+      ['Upfront commission', commRamp, commStd],
+      ['Statement volume bonus', bonus, bonus]
+    ]);
 
     // next volume that pays more
     var cands = [st.lowMin, st.midMin, st.topMin];
@@ -393,18 +379,16 @@
   }
 
   function renderNinety() {
-    var n = C.ninetyDay(cfg, state.deals30, state.deals90, state.all5k);
+    var n = C.ninetyDay(cfg, state.deals30, state.deals90);
     $('deals30Out').textContent = String(state.deals30);
     $('deals90Out').textContent = String(n.deals90);
     $('ninetyTotal').textContent = money(n.total);
-    $('ninetyRule').textContent = cfg.stack90Day
-      ? 'All three stack: the 90-day Fast Start pays on top of the 30-day Fast Start, the ' + cfg.signing.deals + '-deal bonus and your monthly bonuses.'
-      : 'You get the 30-day Fast Start plus the larger of the ' + cfg.signing.deals + '-deal bonus and the 90-day Fast Start.';
+    $('ninetyRule').textContent = 'Both bonuses stack on top of your monthly pay.';
 
     var box = $('bonusCards');
     box.textContent = '';
 
-    function card(title, amount, earned, desc, progress, pills) {
+    function card(title, amount, earned, desc, progress, pill) {
       var c = el('article', 'bcard' + (earned ? ' earned' : ''));
       c.appendChild(el('h3', null, title));
       c.appendChild(el('span', 'amt', money(amount)));
@@ -414,11 +398,9 @@
       bar.appendChild(fill);
       c.appendChild(bar);
       c.appendChild(el('p', null, desc));
-      if (pills && pills.length) {
-        var s = el('div', 'status');
-        pills.forEach(function (p) { s.appendChild(el('span', 'pill' + (p[1] ? ' ' + p[1] : ''), p[0])); });
-        c.appendChild(s);
-      }
+      var st = el('div', 'status');
+      st.appendChild(el('span', 'pill' + (earned ? ' on' : ''), pill));
+      c.appendChild(st);
       box.appendChild(c);
     }
 
@@ -426,34 +408,21 @@
     card('30-Day Fast Start', f.bonus, n.fast30 > 0,
       f.deals + ' deals in your first 30 days. Paid once those deals process $1,000 and 5 transactions.',
       n.deals30 / f.deals,
-      [[n.fast30 ? 'Earned' : plural(Math.max(0, f.deals - n.deals30), 'deal') + ' to go', n.fast30 ? 'on' : '']]);
+      n.fast30 ? 'Earned' : plural(Math.max(0, f.deals - n.deals30), 'deal') + ' to go');
 
-    var s = cfg.signing;
-    var signingApplied = cfg.stack90Day || n.winner === 'signing';
-    var sp = [
-      ['Option 1 · every merchant ' + short(s.option1Min) + '+ → ' + money(s.option1), n.signing && !state.all5k ? 'on' : ''],
-      ['Option 2 · every merchant ' + short(s.option2Min) + '+ → ' + money(s.option2), n.signing && state.all5k ? 'on' : '']
-    ];
-    if (n.signing && !signingApplied) sp.push(['Not applied: 90-day Fast Start pays more', 'dim']);
-    card(s.deals + '-Deal Signing Bonus', state.all5k ? s.option2 : s.option1, n.signing > 0 && signingApplied,
-      s.deals + ' deals in your first 90 days, then 60 more days to get all ' + s.deals + ' processing. The report runs once. If any merchant is under ' + money(s.option2Min) + ', it pays Option 1.',
-      n.deals90 / s.deals, sp);
-
-    var fp = cfg.fastStart90.map(function (t) { return [t[0] + ' deals → ' + money(t[1]), n.fast90.hit && n.fast90.hit[0] === t[0] ? 'on' : '']; });
-    var fastApplied = cfg.stack90Day || n.winner === 'fast90';
-    if (n.fast90.amount && !fastApplied) fp.push(['Not applied: signing bonus pays more', 'dim']);
-    var top90 = cfg.fastStart90.length ? cfg.fastStart90[cfg.fastStart90.length - 1][0] : 1;
-    card('90-Day Fast Start', n.fast90.amount || (cfg.fastStart90[0] ? cfg.fastStart90[0][1] : 0), n.fast90.amount > 0 && fastApplied,
-      'Deals written in your first 90 days. Accounts must be active within 120 days. Paid in month 5.',
-      n.deals90 / top90, fp);
+    var sg = cfg.signing;
+    card(sg.deals + '-Deal Signing Bonus', sg.bonus, n.signing > 0,
+      sg.deals + ' deals in your first 90 days, then 60 more days to get all ' + sg.deals + ' processing ' + money(sg.minVolume) + '+. The report runs once.',
+      n.deals90 / sg.deals,
+      n.signing ? 'Earned' : plural(Math.max(0, sg.deals - n.deals90), 'deal') + ' to go');
   }
 
   function residualInputs() {
     return {
       pace: state.resPace === null ? state.deals : state.resPace,
       volume: state.resVolume === null ? cfg.residual.volume : state.resVolume,
-      bps: state.resBps === null ? cfg.residual.bps : state.resBps,
-      attrition: state.resAttrition === null ? cfg.residual.attrition : state.resAttrition
+      bps: cfg.residual.bps,
+      attrition: cfg.residual.attrition
     };
   }
 
@@ -470,8 +439,6 @@
     var ri = residualInputs();
     if (document.activeElement !== $('resPace')) $('resPace').value = String(ri.pace);
     if (document.activeElement !== $('resVolume')) $('resVolume').value = String(ri.volume);
-    if (document.activeElement !== $('resBps')) $('resBps').value = String(ri.bps);
-    if (document.activeElement !== $('resAttrition')) $('resAttrition').value = String(ri.attrition);
 
     var per = C.residualPerMerchant(cfg, ri.volume, ri.bps);
     $('perMerchant').textContent = usd2.format(per);
@@ -492,14 +459,6 @@
       d.appendChild(el('b', null, s[1]));
       stats.appendChild(d);
     });
-
-    var warn = $('resWarn');
-    if (ri.pace < cfg.residual.minDeals) {
-      warn.hidden = false;
-      warn.textContent = 'Until you are vested, residuals are only paid in months you sign at least ' + cfg.residual.minDeals + ' approved deals. At this pace you would not be paid residuals.';
-    } else {
-      warn.hidden = true;
-    }
 
     drawChart(rows, proj.vestedAt);
   }
@@ -587,16 +546,13 @@
         'Daily pay: once a merchant crosses the processing threshold, you are paid the next day.',
         'The threshold is at least 5 transactions on separate cards and $1,000 in volume.',
         'Upfront starts at ' + money(cfg.upfront.cash) + ' for cash discount deals and ' + money(cfg.upfront.traditional) + ' for traditional deals, adjusted for volume and SSOC pricing.',
-        'Swipers, wireless terminals, Authorize.net, home-based businesses and salons pay ' + money(cfg.smallDeal.cash) + ' cash discount (unless the statement is over $5K) or ' + money(cfg.smallDeal.traditional) + ' traditional (unless over $10K).',
-        'A re-sign of an existing deal pays $100 cash discount or $0 traditional.',
         'Leases pay once funded and the Delivery & Acceptance form is in. Equipment sales pay ' + cfg.equipmentShare + '% of the sale minus equipment cost once the merchant has paid in full.'
       ]],
       ['Monthly bonuses', [
         'Only your best tier pays. Standard: ' + ladderText(cfg.monthlyTiers) + '.',
         'During ramp-up (months 1–' + cfg.rampMonths + ') the bonus is doubled up to ' + doubledTo + ' deals: ' + ladderText(cfg.rampTiers) + '. Above that, you earn the standard tier once it pays more: ' + ladderText(rampLadder.filter(function (t) { return t[0] > doubledTo; })) + '.',
         'Ramp-up bonuses and the second ramp-up commission pay in two parts: the first when accounts hit 5 transactions and $1,000, the second at 10 transactions and $5,000.',
-        'Every deal in a tier must be processing $1,000 in a 30-day span within 90 days. For example, a January 8-deal bonus needs all 8 accounts processing by April 30.',
-        'The 90-day Fast Start is a separate bonus that stacks on top of your monthly bonuses.'
+        'Every deal in a tier must be processing $1,000 in a 30-day span within 90 days. For example, a January 8-deal bonus needs all 8 accounts processing by April 30.'
       ]],
       ['Statement volume bonus', [
         'Submit the statement with the merchant application. It must be within the last 90 days.',
@@ -606,20 +562,16 @@
       ['Appointments', [
         'Complete the appointment certification in WPI University and you receive company appointments. No deal is required to unlock them.',
         'Keep a ' + cfg.closeRate + '% close rate. Deals you generate yourself also count toward it.',
-        'Submit feedback on every appointment by 8 PM the same day, with the merchant name and result.',
-        'Each deal closed from a company appointment carries a ' + money(cfg.leadDeduction) + ' lead deduction.'
+        'Submit feedback on every appointment by 8 PM the same day, with the merchant name and result.'
       ]],
       ['Residuals and vesting', [
         'You earn ' + cfg.residual.share + '% of the residual on your merchants. Residuals pay on the first Friday of each month, starting month ' + cfg.residual.firstPayMonth + '.',
-        'Until you are vested, residuals only pay in months you sign at least ' + cfg.residual.minDeals + ' approved deals, and stop if monthly compensation drops under $250.',
-        'You are vested after ' + cfg.vesting.months + ' straight months with at least ' + money(cfg.vesting.comp) + ' in compensation and ' + cfg.vesting.accounts + ' processing merchant accounts.',
-        'Accounts on reserve pay 50% of the normal residual until the reserve is released.'
+        'You are vested after ' + cfg.vesting.months + ' straight months with at least ' + money(cfg.vesting.comp) + ' in compensation and ' + cfg.vesting.accounts + ' processing merchant accounts.'
       ]],
       ['Deductions', [
         'Non-processing: if a merchant stops processing for 30 days (within 120 days of payment), the upfront commission, statement bonus and ramp-up bonus are deducted. They are paid back once the merchant processes again.',
         'Equipment: if a merchant has not processed for 45 days, the equipment cost is deducted until the merchant processes or the equipment is returned.',
         'Statement bonus: deducted after 60 days if the merchant doesn\'t process the statement amount.',
-        'Lead: ' + money(cfg.leadDeduction) + ' for each deal closed from a company appointment.',
         'Pricing below the SSOC: the monthly minimum and monthly service fee difference ×3, plus the annual fee and early termination fee difference.'
       ]]
     ];
@@ -659,6 +611,13 @@
     ['deals', 'deals30', 'deals90', 'stmtCalcSlider'].forEach(function (id) { setPct($(id)); });
   }
 
+  function setPeriod(p) {
+    state.period = p === 'standard' ? 'standard' : 'ramp';
+    renderPeriod();
+    renderMonth();
+    saveInputs();
+  }
+
   // ---------- inputs ----------
   function wire() {
     var deals = $('deals');
@@ -672,12 +631,7 @@
     });
 
     document.querySelectorAll('.period-opt').forEach(function (b) {
-      b.addEventListener('click', function () {
-        state.period = b.getAttribute('data-period');
-        renderPeriod();
-        renderMonth();
-        saveInputs();
-      });
+      b.addEventListener('click', function () { setPeriod(b.getAttribute('data-period')); });
       b.addEventListener('keydown', function (e) {
         if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
           e.preventDefault();
@@ -698,7 +652,7 @@
       });
     });
 
-    ['smallDeals', 'leadDeals', 'stmtDeals', 'stmtVolume', 'equipProfit'].forEach(function (id) {
+    ['stmtDeals', 'stmtVolume', 'equipProfit'].forEach(function (id) {
       var inp = $(id);
       inp.value = String(state[id]);
       inp.addEventListener('input', function () {
@@ -759,16 +713,12 @@
       });
     });
 
-    $('all5k').checked = state.all5k;
-    $('all5k').addEventListener('change', function () { state.all5k = $('all5k').checked; renderNinety(); saveInputs(); });
-
-    [['resPace', 'resPace'], ['resVolume', 'resVolume'], ['resBps', 'resBps'], ['resAttrition', 'resAttrition']].forEach(function (p) {
-      var inp = $(p[0]);
+    ['resPace', 'resVolume'].forEach(function (id) {
+      var inp = $(id);
       inp.addEventListener('input', function () {
         if (inp.value === '') return;
         var n = Number(inp.value);
-        state[p[1]] = Number.isFinite(n) ? Math.max(0, n) : 0;
-        if (p[1] === 'resAttrition') state[p[1]] = Math.min(100, state[p[1]]);
+        state[id] = Number.isFinite(n) ? Math.max(0, n) : 0;
         renderResidual();
         saveInputs();
       });
@@ -780,15 +730,13 @@
     ['Team', [
       { k: 'team.name', label: 'Team name', type: 'text' },
       { k: 'team.manager', label: 'Manager name', type: 'text' },
+      { k: 'team.title', label: 'Manager title (shown under the note)', type: 'text' },
       { k: 'team.note', label: 'Note to your agents (shown at the bottom)', type: 'textarea', wide: true },
       { k: 'team.guide', label: 'Team career guide (optional)', type: 'text', wide: true, hint: 'Leave blank for the company guide. Enter a slug like "lubbock" once assets/career-guide-lubbock.pdf is published.' }
     ]],
     ['Upfront commission', [
       { k: 'upfront.cash', label: 'Cash discount, per deal', pre: '$' },
       { k: 'upfront.traditional', label: 'Traditional, per deal', pre: '$' },
-      { k: 'smallDeal.cash', label: 'Swiper/salon deal, cash discount', pre: '$' },
-      { k: 'smallDeal.traditional', label: 'Swiper/salon deal, traditional', pre: '$' },
-      { k: 'leadDeduction', label: 'Lead deduction per appointment deal', pre: '$' },
       { k: 'closeRate', label: 'Appointment close rate', post: '%' },
       { k: 'equipmentShare', label: 'Equipment sale share', post: '%' }
     ]],
@@ -804,18 +752,15 @@
       { k: 'fastStart30.deals', label: '30-day Fast Start: deals' },
       { k: 'fastStart30.bonus', label: '30-day Fast Start: bonus', pre: '$' },
       { k: 'signing.deals', label: 'Signing bonus: deals in 90 days' },
-      { k: 'signing.option1', label: 'Option 1 bonus', pre: '$' },
-      { k: 'signing.option1Min', label: 'Option 1: volume per merchant', pre: '$' },
-      { k: 'signing.option2', label: 'Option 2 bonus', pre: '$' },
-      { k: 'signing.option2Min', label: 'Option 2: volume per merchant', pre: '$' },
-      { k: 'fastStart90', label: '90-day Fast Start (deals = bonus)', type: 'tiers', wide: true },
-      { k: 'stack90Day', label: '90-day Fast Start stacks on the 25-deal bonus (otherwise the larger one pays)', type: 'check' }
+      { k: 'signing.bonus', label: 'Signing bonus', pre: '$' },
+      { k: 'signing.minVolume', label: 'Signing bonus: volume per merchant', pre: '$' }
     ]],
-    ['Residual examples', [
+    ['Residuals', [
       { k: 'residual.share', label: 'Residual share', post: '%' },
-      { k: 'residual.volume', label: 'Example volume per merchant', pre: '$' },
-      { k: 'residual.bps', label: 'Example net margin (bps)' },
-      { k: 'residual.attrition', label: 'Example merchants lost per month', post: '%' }
+      { k: 'residual.firstPayMonth', label: 'First residual month' },
+      { k: 'residual.volume', label: 'Default volume per merchant', pre: '$' },
+      { k: 'residual.bps', label: 'Net margin used for estimates (bps)' },
+      { k: 'residual.attrition', label: 'Merchants lost per month', post: '%' }
     ]]
   ];
 

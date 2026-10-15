@@ -1,8 +1,9 @@
 # Agent Pay Estimator
 
 A static, dependency-free site where Wholesale Payments agents estimate their pay:
-upfront commission, monthly bonuses, ramp-up bonuses, statement bonuses, equipment
-sales, lead deductions, and a 24-month residual and vesting projection. It also has
+upfront commission, monthly bonuses, ramp-up signing bonuses, statement bonuses,
+equipment sales, and a 24-month residual and vesting projection. Ramp-Up and
+Standard pay are shown side by side. It also has
 a monthly goal planner (deals and appointments needed to hit a dollar goal), a
 per-deal statement bonus calculator, and the downloadable career guide PDF.
 
@@ -20,7 +21,7 @@ The period toggle at the top switches between the two plans:
 |---|---|---|
 | Upfront commission | 2× per deal; second half pays at $5K and 10 transactions | 1× |
 | Monthly bonus | Doubled up to 10 deals, paid in two halves; standard tier above that when it pays more | Agreement tiers |
-| 30-day, 25-deal and 90-day bonuses | Shown (the 90-day Fast Start stacks) | Hidden |
+| 30-day Fast Start ($1,000) and 25-deal signing bonus ($15,000) | Shown, and they stack | Hidden |
 
 ## Team links (for managers)
 

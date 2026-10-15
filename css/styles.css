@@ -270,7 +270,7 @@ body[data-period="standard"] .ramp-only { display: none; }
 .tip { position: absolute; top: 0; transform: translateX(-50%); pointer-events: none; background: rgba(29, 29, 31, 0.9); color: #fff; font-size: 0.8rem; font-weight: 500; padding: 6px 10px; border-radius: 8px; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .warn { margin-top: 12px; font-size: 0.86rem; color: var(--warn); font-weight: 600; }
 
-.rules { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.rules { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; align-items: start; }
 .rules details { background: var(--surface); border-radius: 18px; padding: 4px 20px; min-width: 0; }
 .rules summary { cursor: pointer; font-weight: 600; padding: 14px 0; letter-spacing: -0.015em; list-style: none; display: flex; justify-content: space-between; gap: 10px; }
 .rules summary::-webkit-details-marker { display: none; }
@@ -284,6 +284,29 @@ body[data-period="standard"] .ramp-only { display: none; }
 .note p::before { content: "\201C"; } .note p::after { content: "\201D"; }
 .note cite { display: block; margin-top: 8px; font-style: normal; font-size: 0.88rem; color: var(--muted); font-weight: 500; }
 .disclaimer { font-size: 0.8rem; color: var(--muted); max-width: 80ch; }
+
+/* ---------- Ramp-Up vs Standard split table ---------- */
+.split { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr) minmax(0, 1fr); font-variant-numeric: tabular-nums; }
+.split > div { padding: 11px 12px; border-top: 1px solid var(--line); min-width: 0; }
+.split .sp-head { border-top: 0; padding-block: 4px 8px; }
+.split .sp-label { padding-left: 0; color: var(--ink-2); font-size: 0.92rem; display: flex; align-items: center; }
+.split .sp-val { text-align: right; font-weight: 600; color: var(--muted); }
+.split .sp-val.on { color: var(--ink); }
+.split .sp-val.zero { font-weight: 500; }
+.split .c-ramp.on { background: var(--ramp-tint); }
+.split .c-std.on { background: var(--std-tint); }
+.split .sp-head.on { border-radius: 14px 14px 0 0; }
+.split .sp-last.on { border-radius: 0 0 14px 14px; }
+.split .sp-head:not(.sp-label) { text-align: right; }
+.sp-switch { border: 0; background: none; padding: 6px 0 0; font-size: 0.86rem; font-weight: 600; color: var(--muted); }
+.sp-head.on .sp-switch { color: var(--ink); }
+.c-ramp.on .sp-switch::before, .c-std.on .sp-switch::before { content: ""; display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 6px; vertical-align: 1px; }
+.c-ramp.on .sp-switch::before { background: var(--green); }
+.c-std.on .sp-switch::before { background: var(--blue); }
+.split .sp-total { border-top: 0; padding-block: 2px 14px; }
+.split .sp-label.sp-total { font-weight: 600; color: var(--ink); }
+.split .sp-val.sp-total { font-size: clamp(1.45rem, 3vw, 2.1rem); letter-spacing: -0.035em; line-height: 1.1; }
+.result .ladder { margin-top: 20px; }
 
 /* ---------- goal planner + statement calculator ---------- */
 .goal, .stmt { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: 20px; align-items: start; }

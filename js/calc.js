@@ -64,28 +64,23 @@
 
   /**
    * One month of upfront pay.
-   * inp: { deals, pricing: 'traditional'|'cash', smallDeals, leadDeals, stmtDeals, stmtVolume, equipProfit }
+   * inp: { deals, pricing: 'traditional'|'cash', stmtDeals, stmtVolume, equipProfit }
    * Sub-counts are capped at `deals` so the breakdown can never exceed the deal count.
    */
   function monthEstimate(cfg, inp, ramp) {
     var deals = count(inp.deals);
-    var small = Math.min(count(inp.smallDeals), deals);
-    var lead = Math.min(count(inp.leadDeals), deals);
     var stmt = Math.min(count(inp.stmtDeals), deals);
     var key = inp.pricing === 'cash' ? 'cash' : 'traditional';
 
-    var base = (deals - small) * cfg.upfront[key] + small * cfg.smallDeal[key];
+    var base = deals * cfg.upfront[key];
     var commission = ramp ? base * cfg.rampCommissionMultiplier : base;
     var tier = tierFor(effectiveTiers(cfg, ramp), deals);
     var statementEach = statementBonus(cfg.statement, inp.stmtVolume);
     var statement = stmt * statementEach;
     var equipment = Math.round(Math.max(0, num(inp.equipProfit)) * cfg.equipmentShare / 100);
-    var leads = lead * cfg.leadDeduction;
 
     return {
       deals: deals,
-      smallDeals: small,
-      leadDeals: lead,
       stmtDeals: stmt,
       base: base,
       commission: commission,
@@ -96,29 +91,16 @@
       statementEach: statementEach,
       statement: statement,
       equipment: equipment,
-      leads: leads,
-      total: commission + tier.amount + statement + equipment - leads
+      total: commission + tier.amount + statement + equipment
     };
   }
 
-  /** Ramp-up 30/90-day bonuses. all5k = every one of the 25 merchants at option-2 volume on report day. */
-  function ninetyDay(cfg, deals30, deals90, all5k) {
+  /** Ramp-up signing bonuses: the 30-day Fast Start and the 25-deal bonus. They stack. */
+  function ninetyDay(cfg, deals30, deals90) {
     var d30 = count(deals30), d90 = Math.max(count(deals90), d30);
     var fast30 = d30 >= cfg.fastStart30.deals ? cfg.fastStart30.bonus : 0;
-    var signing = d90 >= cfg.signing.deals ? (all5k ? cfg.signing.option2 : cfg.signing.option1) : 0;
-    var fast90 = tierFor(cfg.fastStart90, d90);
-    var applied;
-    if (cfg.stack90Day) applied = signing + fast90.amount;
-    else applied = Math.max(signing, fast90.amount);
-    return {
-      deals30: d30,
-      deals90: d90,
-      fast30: fast30,
-      signing: signing,
-      fast90: fast90,
-      winner: cfg.stack90Day ? 'both' : (fast90.amount > signing ? 'fast90' : (signing > 0 ? 'signing' : 'none')),
-      total: fast30 + applied
-    };
+    var signing = d90 >= cfg.signing.deals ? cfg.signing.bonus : 0;
+    return { deals30: d30, deals90: d90, fast30: fast30, signing: signing, total: fast30 + signing };
   }
 
   /**
@@ -147,8 +129,7 @@
    * Month-by-month residual projection at a steady deal pace.
    * o: { dealsPerMonth, perMerchant, attrition (% per month), months, monthlyUpfront }
    * Residuals for a month's book are paid the following month, starting at
-   * cfg.residual.firstPayMonth, and only while the agent writes the minimum
-   * deals per month (until vested). Vesting = `vesting.months` consecutive
+   * cfg.residual.firstPayMonth. Vesting = `vesting.months` consecutive
    * months with total comp >= vesting.comp and book >= vesting.accounts.
    */
   function projectResiduals(cfg, o) {
@@ -159,7 +140,7 @@
     for (var m = 1; m <= o.months; m++) {
       var prevBook = book;
       book = book * keep + pace;
-      var eligible = m >= cfg.residual.firstPayMonth && (vestedAt > 0 || pace >= cfg.residual.minDeals);
+      var eligible = m >= cfg.residual.firstPayMonth;
       var paid = eligible ? prevBook * num(o.perMerchant) : 0;
       cum += paid;
       var comp = paid + num(o.monthlyUpfront);
